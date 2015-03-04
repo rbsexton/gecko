@@ -14,7 +14,7 @@ uniq = $(strip $(if $1,$(firstword $1) \
        $(call uniq,$(filter-out $(firstword $1),$1))))
 
 DEVICE = EFM32ZG222F32
-PROJECTNAME = leuart
+PROJECTNAME = launcher
 SDKROOT= /Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
 CM3LIB= ../../../cm3lib
 
@@ -135,7 +135,7 @@ $(SDKROOT)/emlib/src/em_dma.c \
 $(SDKROOT)/emlib/src/em_rtc.c \
 $(SDKROOT)/emlib/src/em_gpio.c \
 $(SDKROOT)/emlib/src/em_leuart.c \
-interconnect.c leuart.c
+interconnect.c launcher.c
 
 s_SRC += 
 
