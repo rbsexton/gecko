@@ -1,6 +1,9 @@
 # Mac Cruft
 .DS_Store
 
+*.d
+*.map
+
 # Object files
 *.o
 *.ko
@@ -30,3 +33,4 @@
 *.i*86
 *.x86_64
 *.hex
+*.bin
