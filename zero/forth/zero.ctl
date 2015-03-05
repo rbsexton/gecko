@@ -224,7 +224,8 @@ external
 \ *S Application code
 \ *******************
 
-include %DriverDir%/serLE_p \ polled serial driver
+include %AppDir%/interconnect
+include %DriverDir%/serLE_pi \ polled serial driver
 
 \ include %AppDir%/startup
 ' hex AtCold
