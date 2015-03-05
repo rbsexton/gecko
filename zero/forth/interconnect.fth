@@ -8,7 +8,7 @@ struct /INTER	\ -- size
 	ptr u0rxdata 
 end-struct
 
-: jt root @ ; 
+: jt icroot @ ; 
 
 struct /jt
 	ptr EnterEM2
