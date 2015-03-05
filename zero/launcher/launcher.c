@@ -132,7 +132,7 @@ void initLeuart(void)
                    LEUART_ROUTE_LOCATION_LOC0;
 
   /* Enable TX Completion and RX Data */
-  // LEUART_IntEnable(LEUART0,LEUART_IEN_TXBL | LEUART_IEN_RXDATAV);
+  LEUART_IntEnable(LEUART0, LEUART_IEN_RXDATAV);
 
   /* Enable GPIO for LEUART0. TX is on C6 */
   GPIO_PinModeSet(gpioPortD,                /* GPIO port */
@@ -146,14 +146,20 @@ void initLeuart(void)
                  1);                       /* High idle state */
 
   /* Enable RTC interrupt vector in NVIC */
-  // NVIC_EnableIRQ(LEUART0_IRQn);
+  NVIC_EnableIRQ(LEUART0_IRQn);
 
 }
 
-// Not much to do here besides wake the system.
+// Check for valid data, and if so clear it by pulling it out.
 void LEUART0_IRQHandler(void) {
-  LEUART_IntClear(LEUART0,LEUART_IEN_TXBL | LEUART_IEN_RXDATAV);
-  count_leuart_irqs++;
+	/* Store and reset pending interupts */
+	uint32_t leuartif = LEUART_IntGet(LEUART0);
+ 	LEUART_IntClear(LEUART0, leuartif);
+  
+	if ( leuartif & LEUART_IEN_RXDATAV ) {
+		theshareddata.u0rxdata = LEUART0->RXDATAX;
+	}
+  	count_leuart_irqs++;
 }
 
 /**************************************************************************//**
@@ -187,6 +193,7 @@ void setupRtc(void)
 void CheckandEcho() {
 	if ( LEUART0->STATUS & LEUART_STATUS_RXDATAV ) {
 		LEUART0->TXDATA = LEUART0->RXDATA;
+		
 		// LEUART_Tx(LEUART0,LEUART0->RXDATA);
 	}
 }
@@ -208,7 +215,7 @@ void CheckandEcho() {
 int main(void)
 {
 
-  theshareddata.jumptable = jumptable; // Initialize it at runtime 
+  theshareddata.jumptable = (uint32_t) jumptable; // Initialize it at runtime 
 
   /* Initialize chip */
   CHIP_Init();

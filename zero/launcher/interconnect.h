@@ -9,9 +9,7 @@
 
 typedef struct {
 	uint32_t jumptable;
-	uint32_t uartdata;
-	uint32_t uartsemaphore;
-	uint32_t uartrxcount;
+	uint32_t u0rxdata;
 } tSharedData;
 
 extern tSharedData theshareddata;
