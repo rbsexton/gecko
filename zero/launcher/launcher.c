@@ -215,7 +215,7 @@ void CheckandEcho() {
 int main(void)
 {
 
-  theshareddata.jumptable = (uint32_t) jumptable; // Initialize it at runtime 
+  theshareddata.jumptable = (uint32_t) &jumptable; // Initialize it at runtime 
 
   /* Initialize chip */
   CHIP_Init();
