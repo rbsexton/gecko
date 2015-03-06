@@ -50,7 +50,8 @@ internal
 \ ** return the character.
   begin
 [ tasking? ] [if]  pause  [then]
-    dup c@ 
+    dup c@
+     dup 0= if [asm wfi asm] then  
   until
   dup c@ swap 0 swap !
 ;
