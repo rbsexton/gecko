@@ -230,6 +230,9 @@ int main(void)
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
 
+  /* Re-config the HFRCO to the low band */
+  CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
+
   /* Initialize LEUART */
   initLeuart();
 
