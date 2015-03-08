@@ -68,6 +68,11 @@ void RTC_IRQHandler(void)
 {
   /* Clear interrupt source */
   RTC_IntClear(RTC_IFC_COMP0);
+  if(GPIO_PinInGet(gpioPortC, 10)) 
+    GPIO_PinOutSet(gpioPortC, 10);   /* Drive high PD8 */ 
+  else 
+    GPIO_PinOutClear(gpioPortC, 10); /* Drive low PD8 */
+
 }
 
 /**************************************************************************//**
@@ -210,6 +215,15 @@ void setupTimers() {
   TIMER_Init(TIMER1, &timerInit);
 }
 
+/**************************************************************************//**
+ * @brief Initialize the GPIOs.
+ * 
+ * THe zero gecko board has LEDs on PC10 & PC11
+ *****************************************************************************/
+void setupGPIO() {	
+  /* Configure PC10 as push pull output */
+  GPIO_PinModeSet(gpioPortC, 10, gpioModePushPullDrive, 0);
+}
 
 
 /**************************************************************************//**
@@ -252,10 +266,10 @@ int main(void)
   initLeuart();
 
   /* Setup RTC as interrupt source */
-  setupRtc();
-	
+  	setupRtc();
 	setupTimers();
-  
+	setupGPIO();
+
 SayHello();
 
 LaunchUserAppNoNVIC( (long unsigned int *) 0x2000);
