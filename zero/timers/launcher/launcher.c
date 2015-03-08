@@ -160,13 +160,14 @@ void CheckandEcho() {
 
 /**************************************************************************//**
  * @brief Initialize the timer.
- * *
+ * 
+ * THe zero gecko board has Timer1 CC1 on Pin4/PD7 - Location 4.
  *****************************************************************************/
 const TIMER_Init_TypeDef timerInit =
  {
    .enable     = true,
    .debugRun   = true,
-   .prescale   = timerPrescale64,
+   .prescale   = timerPrescale1,
    .clkSel     = timerClkSelHFPerClk,
    .fallAction = timerInputActionNone,
    .riseAction = timerInputActionNone,
@@ -183,8 +184,8 @@ const TIMER_InitCC_TypeDef timerCCInit =
   .edge       = timerEdgeBoth,
   .prsSel     = timerPRSSELCh0,
   .cufoa      = timerOutputActionNone,
-  .cofoa      = timerOutputActionNone,
-  .cmoa       = timerOutputActionToggle,
+  .cofoa      = timerOutputActionSet,
+  .cmoa       = timerOutputActionClear,
   .mode       = timerCCModePWM,
   .filter     = false,
   .prsInput   = false,
@@ -192,21 +193,21 @@ const TIMER_InitCC_TypeDef timerCCInit =
   .outInvert  = false,
 };
 
-setupTimers() {
+void setupTimers() {
   /* Set CC0 location 3 pin (PD1) as output */
-  GPIO_PinModeSet(gpioPortD, 1, gpioModePushPull, 0);
+  GPIO_PinModeSet(gpioPortD, 7, gpioModePushPull, 0);
   
   /* Configure CC channel 0 */
-  TIMER_InitCC(TIMER0, 0, &timerCCInit);
+  TIMER_InitCC(TIMER1, 1, &timerCCInit);
 
-  /* Route CC0 to location 3 (PD1) and enable pin */  
-  TIMER0->ROUTE |= (TIMER_ROUTE_CC0PEN | TIMER_ROUTE_LOCATION_LOC3); 
+  /* Route CC1 to location 3 (PD1) and enable pin */  
+  TIMER1->ROUTE |= (TIMER_ROUTE_CC1PEN | TIMER_ROUTE_LOCATION_LOC4); 
   
-  TIMER_TopSet(TIMER0, 16384);  /* Set Top Value */
-  TIMER_CompareBufSet(TIMER0, 0, 0);  /* Set compare value  */
+  TIMER_TopSet(TIMER1, 16384);  /* Set Top Value */
+  TIMER_CompareBufSet(TIMER1, 1, 8192);  /* Set compare value  */
   
   /* Configure timer */
-  TIMER_Init(TIMER0, &timerInit);
+  TIMER_Init(TIMER1, &timerInit);
 }
 
 
@@ -252,8 +253,10 @@ int main(void)
 
   /* Setup RTC as interrupt source */
   setupRtc();
-
-  SayHello();
+	
+	setupTimers();
+  
+SayHello();
 
 LaunchUserAppNoNVIC( (long unsigned int *) 0x2000);
 
