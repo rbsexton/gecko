@@ -52,7 +52,7 @@
 uint32_t rtcCountBetweenWakeup;
 
 /* Defining the LEUART1 initialization data */
-LEUART_Init_TypeDef leuart0Init =
+const LEUART_Init_TypeDef leuart0Init =
 {
   .enable   = leuartEnable,       /* Activate data reception on LEUn_TX pin. */
   .refFreq  = 0,                    /* Inherit the clock frequenzy from the LEUART clock source */
@@ -63,7 +63,7 @@ LEUART_Init_TypeDef leuart0Init =
 };
 
 /* Set up RTC init struct*/
-RTC_Init_TypeDef rtcInit =
+const RTC_Init_TypeDef rtcInit =
 {
   .debugRun = false,
   .comp0Top = true,

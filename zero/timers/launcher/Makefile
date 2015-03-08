@@ -16,7 +16,7 @@ uniq = $(strip $(if $1,$(firstword $1) \
 DEVICE = EFM32ZG222F32
 PROJECTNAME = launcher
 SDKROOT= /Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
-CM3LIB= ../../../cm3lib
+CM3LIB= ../../../../cm3lib
 
 OBJ_DIR = build
 EXE_DIR = exe

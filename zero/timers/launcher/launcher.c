@@ -1,37 +1,8 @@
-/**************************************************************************//**
- * @file
- * @brief LEUART Demo Application
- * @author Energy Micro AS
- * @version 1.07
- ******************************************************************************
- * @section License
- * <b>(C) Copyright 2013 Energy Micro AS, http://www.energymicro.com</b>
- *******************************************************************************
- *
- * Permission is granted to anyone to use this software for any purpose,
- * including commercial applications, and to alter it and redistribute it
- * freely, subject to the following restrictions:
- *
- * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
- * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.
- * 3. This notice may not be removed or altered from any source distribution.
- * 4. The source and compiled code may only be used on Energy Micro "EFM32"
- *    microcontrollers and "EFR4" radios.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Energy Micro AS has no
- * obligation to support this Software. Energy Micro AS is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Energy Micro AS will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
- *
- *****************************************************************************/
+/// *************************************************************************
+/// * @file
+/// * @brief Timer Drivers
+/// *************************************************************************
+
 #include "em_chip.h"
 #include "em_device.h"
 #include "em_cmu.h"
@@ -40,6 +11,7 @@
 #include "em_dma.h"
 #include "em_gpio.h"
 #include "em_rtc.h"
+#include "em_timer.h"
 
 #include "bl_launcher.h"
 #include "interconnect.h"
@@ -52,7 +24,7 @@
 uint32_t rtcCountBetweenWakeup;
 
 /* Defining the LEUART1 initialization data */
-LEUART_Init_TypeDef leuart0Init =
+const LEUART_Init_TypeDef leuart0Init =
 {
   .enable   = leuartEnable,       /* Activate data reception on LEUn_TX pin. */
   .refFreq  = 0,                    /* Inherit the clock frequenzy from the LEUART clock source */
@@ -63,12 +35,13 @@ LEUART_Init_TypeDef leuart0Init =
 };
 
 /* Set up RTC init struct*/
-RTC_Init_TypeDef rtcInit =
+const RTC_Init_TypeDef rtcInit =
 {
   .debugRun = false,
   .comp0Top = true,
   .enable   = true,
 };
+
 
 // ------------- Statistics ------------------
 int count_leuart_irqs = 0;
@@ -80,19 +53,6 @@ void SayHello() {
 	while(*p) LEUART_Tx(LEUART0,*p++);
 	}
 	
-#if 0 
-	while(*p) {
-		if ( LEUART0->STATUS & LEUART_STATUS_TXBL ) {
-			LEUART_Tx(LEUART0,*p++);
-			}
-		else { 
-    		EMU_EnterEM2(false); // Using 'True' increased power.
-			}
-		
-	}	
-}
-#endif
-
 /**************************************************************************//**
  * @brief RTC Interrupt Handler.
  *
@@ -199,6 +159,59 @@ void CheckandEcho() {
 }
 
 /**************************************************************************//**
+ * @brief Initialize the timer.
+ * *
+ *****************************************************************************/
+const TIMER_Init_TypeDef timerInit =
+ {
+   .enable     = true,
+   .debugRun   = true,
+   .prescale   = timerPrescale64,
+   .clkSel     = timerClkSelHFPerClk,
+   .fallAction = timerInputActionNone,
+   .riseAction = timerInputActionNone,
+   .mode       = timerModeUp,
+   .dmaClrAct  = false,
+   .quadModeX4 = false,
+   .oneShot    = false,
+   .sync       = false,
+ };
+
+const TIMER_InitCC_TypeDef timerCCInit = 
+{
+  .eventCtrl  = timerEventEveryEdge,
+  .edge       = timerEdgeBoth,
+  .prsSel     = timerPRSSELCh0,
+  .cufoa      = timerOutputActionNone,
+  .cofoa      = timerOutputActionNone,
+  .cmoa       = timerOutputActionToggle,
+  .mode       = timerCCModePWM,
+  .filter     = false,
+  .prsInput   = false,
+  .coist      = false,
+  .outInvert  = false,
+};
+
+setupTimers() {
+  /* Set CC0 location 3 pin (PD1) as output */
+  GPIO_PinModeSet(gpioPortD, 1, gpioModePushPull, 0);
+  
+  /* Configure CC channel 0 */
+  TIMER_InitCC(TIMER0, 0, &timerCCInit);
+
+  /* Route CC0 to location 3 (PD1) and enable pin */  
+  TIMER0->ROUTE |= (TIMER_ROUTE_CC0PEN | TIMER_ROUTE_LOCATION_LOC3); 
+  
+  TIMER_TopSet(TIMER0, 16384);  /* Set Top Value */
+  TIMER_CompareBufSet(TIMER0, 0, 0);  /* Set compare value  */
+  
+  /* Configure timer */
+  TIMER_Init(TIMER0, &timerInit);
+}
+
+
+
+/**************************************************************************//**
  * @brief  Main function
  *
  * This example demonstrates a way to use the Low Energy UART to maintain full
@@ -229,7 +242,8 @@ int main(void)
   CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
-
+  CMU_ClockEnable(cmuClock_TIMER0, true);
+   
   /* Re-config the HFRCO to the low band */
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
 
