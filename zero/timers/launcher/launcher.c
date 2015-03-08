@@ -54,28 +54,6 @@ void SayHello() {
 	}
 	
 /**************************************************************************//**
- * @brief RTC Interrupt Handler.
- *
- * This routine will run every other second, when the RTC times out, and generate
- * an interrupt. After clearing the interrupt source, the DMA source address is
- * set, and a new DMA transfer is initiated. When the routine is finished, the
- * system will again enter EM2 while the DMA continues to transfer data from the
- * memory to the LEUART. The LEUART DMA wake-up on TX is enabled to allow a 
- * LEUART DMA request to wake up the DMA. 
- *
- *****************************************************************************/
-void RTC_IRQHandler(void)
-{
-  /* Clear interrupt source */
-  RTC_IntClear(RTC_IFC_COMP0);
-  if(GPIO_PinInGet(gpioPortC, 10)) 
-    GPIO_PinOutSet(gpioPortC, 10);   /* Drive high PD8 */ 
-  else 
-    GPIO_PinOutClear(gpioPortC, 10); /* Drive low PD8 */
-
-}
-
-/**************************************************************************//**
  * @brief  Initialize Low Energy UART 1
  *
  * Here the LEUART is initialized with the chosen settings. It is then routed
@@ -136,7 +114,7 @@ void LEUART0_IRQHandler(void) {
  *****************************************************************************/
 void setupRtc(void)
 {
-  /* Input RTC init struct in initialize funciton */
+  /* Input RTC init struct in initialize function */
   RTC_Init(&rtcInit);
 
   /* Set RTC compare value */
@@ -162,6 +140,30 @@ void CheckandEcho() {
 		// LEUART_Tx(LEUART0,LEUART0->RXDATA);
 	}
 }
+
+/**************************************************************************//**
+ * @brief RTC Interrupt Handler.
+ *
+ * This routine will run every other second, when the RTC times out, and generate
+ * an interrupt. After clearing the interrupt source, the DMA source address is
+ * set, and a new DMA transfer is initiated. When the routine is finished, the
+ * system will again enter EM2 while the DMA continues to transfer data from the
+ * memory to the LEUART. The LEUART DMA wake-up on TX is enabled to allow a 
+ * LEUART DMA request to wake up the DMA. 
+ *
+ *****************************************************************************/
+void RTC_IRQHandler(void)
+{
+  /* Clear interrupt source */
+  RTC_IntClear(RTC_IFC_COMP0);
+
+  if(GPIO_PinInGet(gpioPortC, 10)) 
+    GPIO_PinOutSet(gpioPortC, 10);   /* Drive high PD8 */ 
+  else 
+    GPIO_PinOutClear(gpioPortC, 10); /* Drive low PD8 */
+
+}
+
 
 /**************************************************************************//**
  * @brief Initialize the timer.
