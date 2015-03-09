@@ -274,6 +274,8 @@ int main(void)
 
 SayHello();
 
+GPIO_PinOutSet(gpioPortC, 10);   /* Drive high PD8 */ 
+
 LaunchUserAppNoNVIC( (long unsigned int *) 0x2000);
 
   // Lets just do echo.
