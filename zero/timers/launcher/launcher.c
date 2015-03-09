@@ -117,8 +117,8 @@ void setupRtc(void)
   RTC_Init(&rtcInit);
 
   /* Set RTC compare value */
-  rtcCountBetweenWakeup = ((SystemLFXOClockGet() * WAKEUP_INTERVAL_MS) / 1000);
-  RTC_CompareSet(0, rtcCountBetweenWakeup);
+  // rtcCountBetweenWakeup = ((SystemLFXOClockGet() * WAKEUP_INTERVAL_MS) / 1000);
+  RTC_CompareSet(0, 32767);
 
   /* Enable RTC interrupt from COMP0 */
   RTC_IntEnable(RTC_IF_COMP0);
@@ -156,10 +156,10 @@ void RTC_IRQHandler(void) {
   RTC_IntClear(RTC_IFC_COMP0);
 
   if(GPIO_PinInGet(gpioPortC, 10)) {
-    GPIO_PinOutSet(gpioPortC, 10);   /* Drive high PD8 */ 
+    GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
 	}
   else {
-	GPIO_PinOutClear(gpioPortC, 10); /* Drive low PD8 */
+	GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
 	}
 }
 
