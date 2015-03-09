@@ -34,15 +34,6 @@ const LEUART_Init_TypeDef leuart0Init =
   .stopbits = leuartStopbits1,      /* Setting the number of stop bits in a frame to 2 bitperiods */
 };
 
-/* Set up RTC init struct*/
-const RTC_Init_TypeDef rtcInit =
-{
-  .debugRun = false,
-  .comp0Top = true,
-  .enable   = true,
-};
-
-
 // ------------- Statistics ------------------
 int count_leuart_irqs = 0;
 
@@ -112,6 +103,14 @@ void LEUART0_IRQHandler(void) {
  * second.
  *
  *****************************************************************************/
+/* Set up RTC init struct*/
+const RTC_Init_TypeDef rtcInit =
+{
+  .debugRun = false,
+  .comp0Top = true,
+  .enable   = true,
+};
+
 void setupRtc(void)
 {
   /* Input RTC init struct in initialize function */
