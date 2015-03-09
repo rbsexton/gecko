@@ -151,18 +151,17 @@ void CheckandEcho() {
  * LEUART DMA request to wake up the DMA. 
  *
  *****************************************************************************/
-void RTC_IRQHandler(void)
-{
+void RTC_IRQHandler(void) {
   /* Clear interrupt source */
   RTC_IntClear(RTC_IFC_COMP0);
 
-  if(GPIO_PinInGet(gpioPortC, 10)) 
+  if(GPIO_PinInGet(gpioPortC, 10)) {
     GPIO_PinOutSet(gpioPortC, 10);   /* Drive high PD8 */ 
-  else 
-    GPIO_PinOutClear(gpioPortC, 10); /* Drive low PD8 */
-
+	}
+  else {
+	GPIO_PinOutClear(gpioPortC, 10); /* Drive low PD8 */
+	}
 }
-
 
 /**************************************************************************//**
  * @brief Initialize the timer.
