@@ -200,9 +200,6 @@ const TIMER_InitCC_TypeDef timerCCInit =
 };
 
 void setupTimers() {
-  /* Set CC0 location 3 pin (PD1) as output */
-  GPIO_PinModeSet(gpioPortD, 7, gpioModePushPull, 0);
-  
   /* Configure CC channel 0 */
   TIMER_InitCC(TIMER1, 1, &timerCCInit);
 
@@ -223,7 +220,8 @@ void setupTimers() {
  *****************************************************************************/
 void setupGPIO() {	
   /* Configure PC10 as push pull output */
-  GPIO_PinModeSet(gpioPortC, 10, gpioModePushPullDrive, 0);
+  GPIO_PinModeSet(gpioPortC, 10, gpioModePushPullDrive, 0); // LED.
+  GPIO_PinModeSet(gpioPortD,  7, gpioModePushPullDrive, 0); // Timer1 CC1
 }
 
 
