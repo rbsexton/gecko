@@ -27,7 +27,7 @@ c" ."    	setmacro AppDir		\ where application code lives
 
 c" ./Drivers" setmacro DriverDir \ Driver Code
 
-c" ../../../cm3forthtools/"    setmacro LocalCM3	\ Cortex-M common forth 
+c" ../../../../cm3forthtools/"    setmacro LocalCM3	\ Cortex-M common forth 
 
 
 \ ***************************************

@@ -9,5 +9,7 @@ hex
 400C6000 constant _EMU
 40084000 constant _LEUART0
 40080000 constant _RTC
+40010000 constant _TIMER0
+40010400 constant _TIMER1
 
 decimal
