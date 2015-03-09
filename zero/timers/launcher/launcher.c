@@ -259,7 +259,7 @@ int main(void)
   CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
-  CMU_ClockEnable(cmuClock_TIMER0, true);
+  CMU_ClockEnable(cmuClock_TIMER1, true);
    
   /* Re-config the HFRCO to the low band */
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
