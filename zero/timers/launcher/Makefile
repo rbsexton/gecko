@@ -136,7 +136,7 @@ $(SDKROOT)/emlib/src/em_rtc.c \
 $(SDKROOT)/emlib/src/em_gpio.c \
 $(SDKROOT)/emlib/src/em_leuart.c \
 $(SDKROOT)/emlib/src/em_timer.c \
-interconnect.c launcher.c
+interconnect.c timekeeping.c launcher.c
 
 s_SRC += 
 
