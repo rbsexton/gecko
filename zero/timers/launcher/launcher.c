@@ -156,14 +156,14 @@ void RTC_IRQHandler(void) {
   /* Clear interrupt source */
   RTC_IntClear(RTC_IFC_COMP0);
 
-  if(GPIO_PinInGet(gpioPortC, 10)) {
-    GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
+  if ( next_second() ) {
+	 if(GPIO_PinInGet(gpioPortC, 10) ) {
+	    GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
+		}
+	  else {
+		GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
+		}
 	}
-  else {
-	GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
-	}
-
-	next_second();
   	  
 }
 
