@@ -241,7 +241,7 @@ void setupGPIO() {
 int main(void)
 {
 
-  theshareddata.jumptable = (uint32_t) &jumptable; // Initialize it at runtime 
+  InitSharedData();
 
   /* Initialize chip */
   CHIP_Init();

@@ -9,9 +9,7 @@
 
 #include "interconnect.h"
 
-tSharedData theshareddata __attribute__ ((section(".shareddata"))) = {
-	0,0
- 	};
+tSharedData theshareddata __attribute__ ((section(".shareddata")));
 
 // Lie!
 extern void EMU_EnterEM2();
@@ -19,4 +17,8 @@ extern void EMU_EnterEM2();
 void (* const jumptable[])(void) __attribute__ ((section(".jumptable"))) = {
 	EMU_EnterEM2,
 	};
+
+void InitSharedData() {
+	theshareddata.jumptable = &jumptable;
+}
 
