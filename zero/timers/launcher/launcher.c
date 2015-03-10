@@ -15,6 +15,7 @@
 
 #include "bl_launcher.h"
 #include "interconnect.h"
+#include "timekeeping.h"
 
 /* DEFINES */
 #define WAKEUP_INTERVAL_MS    5000
@@ -161,6 +162,9 @@ void RTC_IRQHandler(void) {
   else {
 	GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
 	}
+
+	next_second();
+  	  
 }
 
 /**************************************************************************//**
