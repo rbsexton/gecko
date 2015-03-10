@@ -118,7 +118,7 @@ void setupRtc(void)
 
   /* Set RTC compare value */
   // rtcCountBetweenWakeup = ((SystemLFXOClockGet() * WAKEUP_INTERVAL_MS) / 1000);
-  RTC_CompareSet(0, 32767);
+  RTC_CompareSet(0, 2047);
 
   /* Enable RTC interrupt from COMP0 */
   RTC_IntEnable(RTC_IF_COMP0);
