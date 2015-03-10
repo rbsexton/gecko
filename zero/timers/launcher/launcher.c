@@ -250,6 +250,9 @@ int main(void)
   CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
   CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
 
+  // Enable the external LFXO.
+  CMU_OscillatorEnable(cmuOsc_LFXO,true,true);			
+
   /* Enabling clocks, all other remain disabled */
   CMU_ClockEnable(cmuClock_CORELE, true);     /* Enable CORELE clock */
   CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
