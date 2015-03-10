@@ -156,6 +156,8 @@ void RTC_IRQHandler(void) {
   /* Clear interrupt source */
   RTC_IntClear(RTC_IFC_COMP0);
 
+  static int pwm_val = 0;
+
   if ( next_second() ) {
 	 if(GPIO_PinInGet(gpioPortC, 10) ) {
 	    GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
@@ -163,9 +165,15 @@ void RTC_IRQHandler(void) {
 	  else {
 		GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
 		}
-	}
-  	  
-}
+		
+		pwm_val += 15; 
+		if ( pwm_val > 899) pwm_val = 0;
+
+		TIMER_CompareSet(TIMER1,1,pwm_val);
+		}
+  
+	
+    }
 
 /**************************************************************************//**
  * @brief Initialize the timer.
@@ -209,8 +217,8 @@ void setupTimers() {
   /* Route CC1 to location 3 (PD1) and enable pin */  
   TIMER1->ROUTE |= (TIMER_ROUTE_CC1PEN | TIMER_ROUTE_LOCATION_LOC4); 
   
-  TIMER_TopSet(TIMER1, 16384);  /* Set Top Value */
-  TIMER_CompareBufSet(TIMER1, 1, 8192);  /* Set compare value  */
+  TIMER_TopSet(TIMER1, 999);  /* Set Top Value */
+  TIMER_CompareBufSet(TIMER1, 1, 0);  /* Set compare value  */
   
   /* Configure timer */
   TIMER_Init(TIMER1, &timerInit);
