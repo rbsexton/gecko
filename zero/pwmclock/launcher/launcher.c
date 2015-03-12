@@ -145,6 +145,16 @@ void CheckandEcho() {
 	}
 }
 
+void LEDUpdate() {
+	 // First, consider the LEDs.
+	 if(GPIO_PinInGet(gpioPortC, 10) ) {
+	    GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
+		}
+	  else {
+		GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
+		}	
+	}
+	
 /**************************************************************************//**
  * @brief RTC Interrupt Handler.
  *
@@ -162,14 +172,7 @@ void RTC_IRQHandler(void) {
 
   // First, the once per second things.
   if ( next_second() ) {
-	
-	 // First, consider the LEDs.
-	 if(GPIO_PinInGet(gpioPortC, 10) ) {
-	    GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
-		}
-	  else {
-		GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
-		}
+	LEDUpdate();
 	  
 	int newpwm = TIMER1->CC[0].CCV; 
 	newpwm += interp_next(&dither_hmS);
