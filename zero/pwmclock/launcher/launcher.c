@@ -19,9 +19,10 @@
 #include "bresenham.h"
 
 /* DEFINES */
-#define WAKEUP_INTERVAL_MS    5000
+#define CC0_MAX 887 
 
 /* GLOBAL VARIABLES */
+tInterpKernel dither_hmS;
 tInterpKernel dither_hMs;
 tInterpKernel dither_Hms;
 
@@ -169,8 +170,8 @@ void RTC_IRQHandler(void) {
 		}
 	  
 	int newpwm = TIMER1->CC[0].CCV; 
-	newpwm = next_second_pwm(newpwm);
-	if ( newpwm > 899) newpwm = 0;
+	newpwm += interp_next(&dither_hmS);
+	if ( newpwm > CC0_MAX) newpwm = 0;
 	if ( ! (theshareddata.pwmcalibrate & 0x1) ) TIMER_CompareBufSet(TIMER1,0,newpwm);
 	}
 
@@ -309,6 +310,7 @@ int main(void)
   /* Re-config the HFRCO to the low band */
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
 
+	interp_init(&dither_hmS, CC0_MAX, 60);
 	interp_init(&dither_hMs, 900, 3600 * 16);
 	interp_init(&dither_Hms, 900, 3600 * 12 * 16);
 
