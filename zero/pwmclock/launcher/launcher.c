@@ -20,6 +20,8 @@
 
 /* DEFINES */
 #define CC0_MAX 887 
+#define CC1_MAX 870 
+#define CC2_MAX 890 
 
 /* GLOBAL VARIABLES */
 tInterpKernel dither_hmS;
@@ -181,7 +183,7 @@ void RTC_IRQHandler(void) {
 		int newpwm = TIMER1->CC[1].CCV;  
 	
 		newpwm += interp_next(&dither_hMs);
-		if (newpwm > 900) {
+		if (newpwm > CC1_MAX) {
 			interp_reset(&dither_hMs);
 			newpwm = 0;
 			}
@@ -192,7 +194,7 @@ void RTC_IRQHandler(void) {
 		newpwm = TIMER1->CC[2].CCV;  
 	
 		newpwm += interp_next(&dither_Hms);
-		if (newpwm > 900) {
+		if (newpwm > CC2_MAX) {
 			interp_reset(&dither_Hms);
 			newpwm = 0;
 			}
@@ -311,8 +313,8 @@ int main(void)
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
 
 	interp_init(&dither_hmS, CC0_MAX, 60);
-	interp_init(&dither_hMs, 900, 3600 * 16);
-	interp_init(&dither_Hms, 900, 3600 * 12 * 16);
+	interp_init(&dither_hMs, CC1_MAX, 3600 * 16);
+	interp_init(&dither_Hms, CC2_MAX, 3600 * 12 * 16);
 
   /* Initialize LEUART */
   initLeuart();
