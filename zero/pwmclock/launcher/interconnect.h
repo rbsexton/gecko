@@ -10,6 +10,8 @@
 typedef struct {
 	uint32_t jumptable;
 	uint32_t u0rxdata;
+
+	uint32_t pwmcalibrate; // One bit for each PWM source.
 	
 	uint32_t count_a_sec;
 	uint32_t count_a_min;

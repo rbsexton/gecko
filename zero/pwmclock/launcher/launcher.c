@@ -171,7 +171,7 @@ void RTC_IRQHandler(void) {
 	int newpwm = TIMER1->CC[0].CCV; 
 	newpwm = next_second_pwm(newpwm);
 	if ( newpwm > 899) newpwm = 0;
-	TIMER_CompareBufSet(TIMER1,0,newpwm);
+	if ( ! (theshareddata.pwmcalibrate & 0x1) ) TIMER_CompareBufSet(TIMER1,0,newpwm);
 	}
 
     // Once per 16Hz tick.
@@ -184,8 +184,8 @@ void RTC_IRQHandler(void) {
 			interp_reset(&dither_hMs);
 			newpwm = 0;
 			}
-			
-		TIMER_CompareBufSet(TIMER1,1,newpwm);
+
+		if ( ! (theshareddata.pwmcalibrate & 0x2) ) TIMER_CompareBufSet(TIMER1,1,newpwm);
 
 		// Hours
 		newpwm = TIMER1->CC[2].CCV;  
@@ -196,7 +196,7 @@ void RTC_IRQHandler(void) {
 			newpwm = 0;
 			}
 			
-		TIMER_CompareBufSet(TIMER1,2,newpwm);
+		if ( ! (theshareddata.pwmcalibrate & 0x4) ) TIMER_CompareBufSet(TIMER1,2,newpwm);
 	}
 	
     }
