@@ -190,22 +190,22 @@ void TimeUpdate() {
 			interp_reset(&dither_hmS);
 			newpwm_a = 0;
 			}
-		}
+			
+		newpwm_b += interp_next(&dither_hMs);
+		if (newpwm_b > CC1_MAX) {
+			interp_reset(&dither_hMs);
+			newpwm_b = 0;
+			}
 
-	newpwm_b += interp_next(&dither_hMs);
-	if (newpwm_b > CC1_MAX) {
-		interp_reset(&dither_hMs);
-		newpwm_b = 0;
-		}
-		
-	// Hours
-	newpwm_c += interp_next(&dither_Hms);
-	if (newpwm_c > CC2_MAX) {
-		interp_reset(&dither_Hms);
-		newpwm_c = 0;
+		// Hours
+		newpwm_c += interp_next(&dither_Hms);
+		if (newpwm_c > CC2_MAX) {
+			interp_reset(&dither_Hms);
+			newpwm_c = 0;
+			}
+		PWMUpdate(newpwm_a,newpwm_b,newpwm_c);		
 		}
 			
-	PWMUpdate(newpwm_a,newpwm_b,newpwm_c);	
 	}
 
 void DTimeUpdate() {
@@ -355,13 +355,13 @@ int main(void)
   /* Re-config the HFRCO to the low band */
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
 
-	interp_init(&dither_hmS, CC0_MAX, 60);
-	interp_init(&dither_hMs, CC1_MAX, 3600 * 16);
-	interp_init(&dither_Hms, CC2_MAX, 3600 * 12 * 16);
+	interp_init(&dither_hmS, CC0_MAX,           60 );
+	interp_init(&dither_hMs, CC1_MAX,      60 * 60 );
+	interp_init(&dither_Hms, CC2_MAX, 12 * 60 * 60 );
 
 	interp_init(&dither_dtime, 125, 1728);
-	interp_init(&dither_dtime_hmS, CC0_MAX, 100);
-	interp_init(&dither_dtime_hMs, CC1_MAX, 10000);
+	interp_init(&dither_dtime_hmS, CC0_MAX,    100);
+	interp_init(&dither_dtime_hMs, CC1_MAX,  10000);
 	interp_init(&dither_dtime_Hms, CC2_MAX, 100000);
 
   /* Initialize LEUART */
