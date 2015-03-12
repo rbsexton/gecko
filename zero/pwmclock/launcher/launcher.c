@@ -145,16 +145,7 @@ void CheckandEcho() {
 	}
 }
 
-void LEDUpdate() {
-	 // First, consider the LEDs.
-	 if(GPIO_PinInGet(gpioPortC, 10) ) {
-	    GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
-		}
-	  else {
-		GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
-		}	
-	}
-	
+
 /**************************************************************************//**
  * @brief RTC Interrupt Handler.
  *
@@ -166,6 +157,17 @@ void LEDUpdate() {
  * LEUART DMA request to wake up the DMA. 
  *
  *****************************************************************************/
+void LEDUpdate() {
+	 // First, consider the LEDs.
+	 if(GPIO_PinInGet(gpioPortC, 10) ) {
+	    GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
+		}
+	  else {
+		GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
+		}	
+	}
+	
+
 void RTC_IRQHandler(void) {
   /* Clear interrupt source */
   RTC_IntClear(RTC_IFC_COMP0);
