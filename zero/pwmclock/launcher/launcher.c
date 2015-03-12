@@ -158,55 +158,47 @@ void CheckandEcho() {
  *
  *****************************************************************************/
 void LEDUpdate() {
-	 // First, consider the LEDs.
-	 if(GPIO_PinInGet(gpioPortC, 10) ) {
-	    GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
-		}
-	  else {
-		GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
-		}	
+	// First, consider the LEDs.
+	if(GPIO_PinInGet(gpioPortC, 10) ) GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
+	else GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
 	}
-	
+
+void PWMUpdate(int a, int b, int c) {
+	if ( ! (theshareddata.pwmcalibrate & 0x1) ) TIMER_CompareBufSet(TIMER1,0,a);
+	if ( ! (theshareddata.pwmcalibrate & 0x2) ) TIMER_CompareBufSet(TIMER1,1,b);
+	if ( ! (theshareddata.pwmcalibrate & 0x4) ) TIMER_CompareBufSet(TIMER1,2,c);
+	}	
 
 void RTC_IRQHandler(void) {
-  /* Clear interrupt source */
-  RTC_IntClear(RTC_IFC_COMP0);
-
-  // First, the once per second things.
-  if ( next_second() ) {
-	LEDUpdate();
-	  
-	int newpwm = TIMER1->CC[0].CCV; 
-	newpwm += interp_next(&dither_hmS);
-	if ( newpwm > CC0_MAX) newpwm = 0;
-	if ( ! (theshareddata.pwmcalibrate & 0x1) ) TIMER_CompareBufSet(TIMER1,0,newpwm);
-	}
-
-    // Once per 16Hz tick.
-	{
-		// Minutes 
-		int newpwm = TIMER1->CC[1].CCV;  
+	int newpwm_a,newpwm_b,newpwm_c;
 	
-		newpwm += interp_next(&dither_hMs);
-		if (newpwm > CC1_MAX) {
-			interp_reset(&dither_hMs);
-			newpwm = 0;
-			}
+ 	/* Clear interrupt source */
+ 	RTC_IntClear(RTC_IFC_COMP0);
 
-		if ( ! (theshareddata.pwmcalibrate & 0x2) ) TIMER_CompareBufSet(TIMER1,1,newpwm);
+ 	// First, the once per second things.
+ 	newpwm_a = TIMER1->CC[0].CCV; 
+	if ( next_second() ) {
+		LEDUpdate();	  
+		newpwm_a += interp_next(&dither_hmS);
+		if ( newpwm_a > CC0_MAX) newpwm_a = 0;
+		}
 
-		// Hours
-		newpwm = TIMER1->CC[2].CCV;  
-	
-		newpwm += interp_next(&dither_Hms);
-		if (newpwm > CC2_MAX) {
-			interp_reset(&dither_Hms);
-			newpwm = 0;
-			}
+ 	newpwm_b = TIMER1->CC[1].CCV; 	
+	newpwm_b += interp_next(&dither_hMs);
+	if (newpwm_b > CC1_MAX) {
+		interp_reset(&dither_hMs);
+		newpwm_b = 0;
+		}
+		
+	// Hours
+	newpwm_c = TIMER1->CC[2].CCV;
+	newpwm_c += interp_next(&dither_Hms);
+	if (newpwm_c > CC2_MAX) {
+		interp_reset(&dither_Hms);
+		newpwm_c = 0;
+		}
 			
-		if ( ! (theshareddata.pwmcalibrate & 0x4) ) TIMER_CompareBufSet(TIMER1,2,newpwm);
-	}
-	
+	PWMUpdate(newpwm_a,newpwm_b,newpwm_c);
     }
 
 /**************************************************************************//**
