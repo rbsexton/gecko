@@ -30,6 +30,8 @@ tInterpKernel dither_Hms;
 
 tInterpKernel dither_dtime;
 tInterpKernel dither_dtime_hmS;
+tInterpKernel dither_dtime_hMs;
+tInterpKernel dither_dtime_Hms;
 
 /* Defining the LEUART1 initialization data */
 const LEUART_Init_TypeDef leuart0Init =
@@ -176,8 +178,11 @@ void PWMUpdate(int a, int b, int c) {
 void TimeUpdate() {
 	int newpwm_a,newpwm_b,newpwm_c;
 
- 	// First, the once per second things.
  	newpwm_a = TIMER1->CC[0].CCV; 
+ 	newpwm_b = TIMER1->CC[1].CCV; 	
+	newpwm_c = TIMER1->CC[2].CCV;
+
+ 	// First, the once per second things.
 	if ( next_second() ) {
 		LEDUpdate();	  
 		newpwm_a += interp_next(&dither_hmS);
@@ -187,7 +192,6 @@ void TimeUpdate() {
 			}
 		}
 
- 	newpwm_b = TIMER1->CC[1].CCV; 	
 	newpwm_b += interp_next(&dither_hMs);
 	if (newpwm_b > CC1_MAX) {
 		interp_reset(&dither_hMs);
@@ -195,7 +199,6 @@ void TimeUpdate() {
 		}
 		
 	// Hours
-	newpwm_c = TIMER1->CC[2].CCV;
 	newpwm_c += interp_next(&dither_Hms);
 	if (newpwm_c > CC2_MAX) {
 		interp_reset(&dither_Hms);
@@ -213,15 +216,28 @@ void DTimeUpdate() {
 	 newpwm_b = TIMER1->CC[1].CCV; 
 	 newpwm_c = TIMER1->CC[2].CCV; 
 
-	if ( interp_next(&dither_dtime) ) {
+	if ( interp_next(&dither_dtime) ) { // Only update on the decimal second.
 		newpwm_a += interp_next(&dither_dtime_hmS);
 		if ( newpwm_a > CC0_MAX) {
 			interp_reset(&dither_dtime_hmS);
 			newpwm_a = 0;
 			}
+			
+		newpwm_b += interp_next(&dither_dtime_hMs);
+		if ( newpwm_b > CC1_MAX) {
+			interp_reset(&dither_dtime_hMs);
+			newpwm_b = 0;
+			}
+			
+		newpwm_c += interp_next(&dither_dtime_Hms);
+		if ( newpwm_c > CC2_MAX) {
+			interp_reset(&dither_dtime_Hms);
+			newpwm_c = 0;
+			}		
+
+		PWMUpdate(newpwm_a,newpwm_b,newpwm_c);	
 		}
-	
-	PWMUpdate(newpwm_a,newpwm_b,newpwm_c);	
+		
 	}
 
 void RTC_IRQHandler(void) {
@@ -345,6 +361,8 @@ int main(void)
 
 	interp_init(&dither_dtime, 125, 1728);
 	interp_init(&dither_dtime_hmS, CC0_MAX, 100);
+	interp_init(&dither_dtime_hMs, CC1_MAX, 10000);
+	interp_init(&dither_dtime_Hms, CC2_MAX, 100000);
 
   /* Initialize LEUART */
   initLeuart();
