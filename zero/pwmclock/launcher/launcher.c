@@ -169,11 +169,9 @@ void PWMUpdate(int a, int b, int c) {
 	if ( ! (theshareddata.pwmcalibrate & 0x4) ) TIMER_CompareBufSet(TIMER1,2,c);
 	}	
 
-void RTC_IRQHandler(void) {
+
+void TimeUpdate() {
 	int newpwm_a,newpwm_b,newpwm_c;
-	
- 	/* Clear interrupt source */
- 	RTC_IntClear(RTC_IFC_COMP0);
 
  	// First, the once per second things.
  	newpwm_a = TIMER1->CC[0].CCV; 
@@ -198,7 +196,14 @@ void RTC_IRQHandler(void) {
 		newpwm_c = 0;
 		}
 			
-	PWMUpdate(newpwm_a,newpwm_b,newpwm_c);
+	PWMUpdate(newpwm_a,newpwm_b,newpwm_c);	
+	}
+
+void RTC_IRQHandler(void) {
+	
+ 	/* Clear interrupt source */
+ 	RTC_IntClear(RTC_IFC_COMP0);
+	TimeUpdate();
     }
 
 /**************************************************************************//**
