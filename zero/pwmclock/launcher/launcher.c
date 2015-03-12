@@ -28,6 +28,9 @@ tInterpKernel dither_hmS;
 tInterpKernel dither_hMs;
 tInterpKernel dither_Hms;
 
+tInterpKernel dither_dtime;
+tInterpKernel dither_dtime_hmS;
+
 /* Defining the LEUART1 initialization data */
 const LEUART_Init_TypeDef leuart0Init =
 {
@@ -178,7 +181,10 @@ void TimeUpdate() {
 	if ( next_second() ) {
 		LEDUpdate();	  
 		newpwm_a += interp_next(&dither_hmS);
-		if ( newpwm_a > CC0_MAX) newpwm_a = 0;
+		if ( newpwm_a > CC0_MAX) {
+			interp_reset(&dither_hmS);
+			newpwm_a = 0;
+			}
 		}
 
  	newpwm_b = TIMER1->CC[1].CCV; 	
@@ -199,11 +205,30 @@ void TimeUpdate() {
 	PWMUpdate(newpwm_a,newpwm_b,newpwm_c);	
 	}
 
+void DTimeUpdate() {
+	int newpwm_a,newpwm_b,newpwm_c;
+
+	 // First, the once per second things.
+	 newpwm_a = TIMER1->CC[0].CCV; 
+	 newpwm_b = TIMER1->CC[1].CCV; 
+	 newpwm_c = TIMER1->CC[2].CCV; 
+
+	if ( interp_next(&dither_dtime) ) {
+		newpwm_a += interp_next(&dither_dtime_hmS);
+		if ( newpwm_a > CC0_MAX) {
+			interp_reset(&dither_dtime_hmS);
+			newpwm_a = 0;
+			}
+		}
+	
+	PWMUpdate(newpwm_a,newpwm_b,newpwm_c);	
+	}
+
 void RTC_IRQHandler(void) {
 	
  	/* Clear interrupt source */
  	RTC_IntClear(RTC_IFC_COMP0);
-	TimeUpdate();
+	DTimeUpdate();
     }
 
 /**************************************************************************//**
@@ -317,6 +342,9 @@ int main(void)
 	interp_init(&dither_hmS, CC0_MAX, 60);
 	interp_init(&dither_hMs, CC1_MAX, 3600 * 16);
 	interp_init(&dither_Hms, CC2_MAX, 3600 * 12 * 16);
+
+	interp_init(&dither_dtime, 125, 1728);
+	interp_init(&dither_dtime_hmS, CC0_MAX, 100);
 
   /* Initialize LEUART */
   initLeuart();
