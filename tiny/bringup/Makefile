@@ -132,8 +132,8 @@ $(SDKROOT)/emlib/src/em_cmu.c \
 $(SDKROOT)/emlib/src/em_emu.c \
 $(SDKROOT)/emlib/src/em_gpio.c \
 $(SDKROOT)/emlib/src/em_system.c \
-$(SDKROOT)/emlib/src/em_usart.c \
-../launcher.c
+$(SDKROOT)/emlib/src/em_leuart.c \
+../launcher.c ../interconnect.c
 
 s_SRC += 
 
