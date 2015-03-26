@@ -49,16 +49,6 @@
 
 /* GLOBAL VARIABLES */
 
-uint32_t rtcCountBetweenWakeup;
-
-/* Set up RTC init struct*/
-const RTC_Init_TypeDef rtcInit =
-{
-  .debugRun = false,
-  .comp0Top = true,
-  .enable   = true,
-};
-
 // ******************* Boot Banner ****************************
 const char message[] = "Boot! ";
 void SayHello() {
@@ -78,23 +68,6 @@ void SayHello() {
 	}	
 }
 #endif
-
-/**************************************************************************//**
- * @brief RTC Interrupt Handler.
- *
- * This routine will run every other second, when the RTC times out, and generate
- * an interrupt. After clearing the interrupt source, the DMA source address is
- * set, and a new DMA transfer is initiated. When the routine is finished, the
- * system will again enter EM2 while the DMA continues to transfer data from the
- * memory to the LEUART. The LEUART DMA wake-up on TX is enabled to allow a 
- * LEUART DMA request to wake up the DMA. 
- *
- *****************************************************************************/
-void RTC_IRQHandler(void)
-{
-  /* Clear interrupt source */
-  RTC_IntClear(RTC_IFC_COMP0);
-}
 
 /**************************************************************************//**
  * @brief  Initialize Low Energy UART 1
@@ -168,6 +141,16 @@ void LEUART0_IRQHandler(void) {
  * second.
  *
  *****************************************************************************/
+uint32_t rtcCountBetweenWakeup;
+
+/* Set up RTC init struct*/
+const RTC_Init_TypeDef rtcInit =
+{
+  .debugRun = false,
+  .comp0Top = true,
+  .enable   = true,
+};
+
 void setupRtc(void)
 {
   /* Input RTC init struct in initialize funciton */
@@ -186,6 +169,14 @@ void setupRtc(void)
   /* Enable RTC */
   RTC_Enable(true);
 }
+
+void RTC_IRQHandler(void)
+{
+  /* Clear interrupt source */
+  RTC_IntClear(RTC_IFC_COMP0);
+}
+
+
 
 // See if there is a character in the LEUART buffer and echo it back.
 
