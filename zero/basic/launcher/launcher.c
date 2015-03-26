@@ -51,17 +51,6 @@
 
 uint32_t rtcCountBetweenWakeup;
 
-/* Defining the LEUART1 initialization data */
-const LEUART_Init_TypeDef leuart0Init =
-{
-  .enable   = leuartEnable,       /* Activate data reception on LEUn_TX pin. */
-  .refFreq  = 0,                    /* Inherit the clock frequenzy from the LEUART clock source */
-  .baudrate = 9600,                 /* Baudrate = 9600 bps */
-  .databits = leuartDatabits8,      /* Each LEUART frame containes 8 databits */
-  .parity   = leuartNoParity,       /* No parity bits in use */
-  .stopbits = leuartStopbits1,      /* Setting the number of stop bits in a frame to 2 bitperiods */
-};
-
 /* Set up RTC init struct*/
 const RTC_Init_TypeDef rtcInit =
 {
@@ -121,6 +110,17 @@ void RTC_IRQHandler(void)
 
 // For the Zero Gecko board, TX=PD4, RX=PD5
 
+/* LEUART1 initialization data */
+const LEUART_Init_TypeDef leuart0Init =
+{
+  .enable   = leuartEnable,       /* Activate data reception on LEUn_TX pin. */
+  .refFreq  = 0,                    /* Inherit the clock frequenzy from the LEUART clock source */
+  .baudrate = 9600,                 /* Baudrate = 9600 bps */
+  .databits = leuartDatabits8,      /* Each LEUART frame containes 8 databits */
+  .parity   = leuartNoParity,       /* No parity bits in use */
+  .stopbits = leuartStopbits1,      /* Setting the number of stop bits in a frame to 2 bitperiods */
+};
+
 void initLeuart(void)
 {
   /* Reseting and initializing LEUART1 */
@@ -145,9 +145,8 @@ void initLeuart(void)
                  gpioModeInputPull,         /* Pin mode is set to push pull */
                  1);                       /* High idle state */
 
-  /* Enable RTC interrupt vector in NVIC */
+  /* Enable LEUART interrupt vector in NVIC */
   NVIC_EnableIRQ(LEUART0_IRQn);
-
 }
 
 // Check for valid data, and if so clear it by pulling it out.
