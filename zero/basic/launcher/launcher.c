@@ -59,9 +59,6 @@ const RTC_Init_TypeDef rtcInit =
   .enable   = true,
 };
 
-// ------------- Statistics ------------------
-int count_leuart_irqs = 0;
-
 // ******************* Boot Banner ****************************
 const char message[] = "Boot! ";
 void SayHello() {
@@ -120,6 +117,9 @@ const LEUART_Init_TypeDef leuart0Init =
   .parity   = leuartNoParity,       /* No parity bits in use */
   .stopbits = leuartStopbits1,      /* Setting the number of stop bits in a frame to 2 bitperiods */
 };
+
+// ------------- Statistics ------------------
+int count_leuart_irqs = 0;
 
 void initLeuart(void)
 {
