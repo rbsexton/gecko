@@ -1,6 +1,22 @@
 /// *************************************************************************
-/// * @file
+/// * @file launcher.c
 /// * @brief Timer Drivers
+/// 
+/// Pinout for the eval board. 
+/// Pin 12 PD4/LEU0TX
+/// Pin 14 PD5/LEU0RX
+/// Pin  1 GND
+/// 
+///
+/// Debug header
+/// LED Port C Pin 10
+/// T1CC2/C13/Header Hours
+/// T1CC1/D7/Pin 4/Minutes
+/// T1CC0/D6/Pin 6/Seconds
+/// Grounds on Debug Header 4-20
+/// T0CC0/PA0/Header
+/// T0CC1/PA1/Header
+/// PC15 /Pin 8 - Switch
 /// *************************************************************************
 
 #include "em_chip.h"
@@ -244,6 +260,7 @@ void RTC_IRQHandler(void) {
 	
  	/* Clear interrupt source */
  	RTC_IntClear(RTC_IFC_COMP0);
+	UIButtonUpdate(! (GPIO->P[gpioPortC].DIN & 0x8000) );
 	DTimeUpdate();
     }
 
@@ -313,6 +330,10 @@ void setupGPIO() {
   GPIO_PinModeSet(gpioPortC, 13, gpioModePushPullDrive, 0); // Timer1 CC2
   GPIO_PinModeSet(gpioPortD,  6, gpioModePushPullDrive, 0); // Timer1 CC0
   GPIO_PinModeSet(gpioPortD,  7, gpioModePushPullDrive, 0); // Timer1 CC1
+
+  GPIO_PinModeSet(gpioPortC, 15, gpioModeInputPull, 0); // GPIO Input
+	GPIO->P[gpioPortC].DOUT = 0x8000;
+
 }
 
 

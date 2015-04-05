@@ -1,7 +1,7 @@
 #include "timekeeping.h"
 #include "interconnect.h"
 
-// Expects to be called at 16Hz.
+// Expects to be called at 16Hz. - Not currently used.
 int next_second() {
 	static int count = 0;
 	tSharedData *p = &theshareddata;
