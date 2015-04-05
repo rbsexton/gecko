@@ -190,7 +190,6 @@ void PWMUpdate(int a, int b, int c) {
 	if ( ! (theshareddata.pwmcalibrate & 0x4) ) TIMER_CompareBufSet(TIMER1,2,c);
 	}	
 
-
 void TimeUpdate() {
 	int newpwm_a,newpwm_b,newpwm_c;
 
@@ -220,8 +219,7 @@ void TimeUpdate() {
 			newpwm_c = 0;
 			}
 		PWMUpdate(newpwm_a,newpwm_b,newpwm_c);		
-		}
-			
+		}		
 	}
 
 void DTimeUpdate() {
@@ -253,11 +251,9 @@ void DTimeUpdate() {
 
 		PWMUpdate(newpwm_a,newpwm_b,newpwm_c);	
 		}
-		
 	}
 
 void RTC_IRQHandler(void) {
-	
  	/* Clear interrupt source */
  	RTC_IntClear(RTC_IFC_COMP0);
 	UIButtonUpdate(! (GPIO->P[gpioPortC].DIN & 0x8000) );
@@ -333,9 +329,7 @@ void setupGPIO() {
 
   GPIO_PinModeSet(gpioPortC, 15, gpioModeInputPull, 0); // GPIO Input
 	GPIO->P[gpioPortC].DOUT = 0x8000;
-
 }
-
 
 /**************************************************************************//**
  * @brief  Main function
@@ -380,7 +374,7 @@ int main(void)
 	interp_init(&dither_hMs, CC1_MAX,      60 * 60 );
 	interp_init(&dither_Hms, CC2_MAX, 12 * 60 * 60 );
 
-	interp_init(&dither_dtime, 125, 1728);
+	interp_init(&dither_dtime, 125, 1728); // Generate Decimal Seconds
 	interp_init(&dither_dtime_hmS, CC0_MAX,    100);
 	interp_init(&dither_dtime_hMs, CC1_MAX,  10000);
 	interp_init(&dither_dtime_Hms, CC2_MAX, 100000);
