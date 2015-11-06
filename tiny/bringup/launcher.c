@@ -22,6 +22,7 @@
 #include "em_leuart.h"
 #include "em_rtc.h"
 
+#include "bl_launcher.h"
 #include "interconnect.h"
 
 // -----------------------------------------------------------------------
@@ -124,6 +125,16 @@ void RTC_IRQHandler(void)
   RTC_IntClear(RTC_IFC_COMP0);
 }
 
+// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// Boot Message
+// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+const char message[] = "Boot! ";
+void SayHello() {
+	const char *p = message;
+	while(*p) LEUART_Tx(LEUART0,*p++);
+	}
 
 /**************************************************************************//**
  * @brief  Main function
@@ -149,7 +160,9 @@ int main(void)
   /* Initialize LEUART */
   initLeuart();
 
+  SayHello();
 
+  LaunchUserAppNoNVIC( (long unsigned int *) 0x2000);
 
   /* Infinite blink loop */
   while (1)

@@ -16,7 +16,7 @@ uniq = $(strip $(if $1,$(firstword $1) \
 DEVICE = EFM32TG840F32
 PROJECTNAME = launcher
 SDKROOT= /Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
-CM3LIB= ../../../../cm3lib
+CM3LIB= ../../../cm3lib
 
 
 OBJ_DIR = build
@@ -115,10 +115,10 @@ LIBS = -Wl,--start-group -lgcc -lc -lnosys   -Wl,--end-group
 
 INCLUDEPATHS += \
 -I.. \
+-I$(CM3LIB)/ \
 -I$(SDKROOT)/CMSIS/Include \
 -I$(SDKROOT)/Device/SiliconLabs/EFM32TG/Include \
 -I$(SDKROOT)/emlib/inc \
--I../../../../common/bsp \
 -I../../../config
 
 ####################################################################
@@ -139,7 +139,8 @@ $(SDKROOT)/emlib/src/em_rtc.c \
 s_SRC += 
 
 S_SRC +=  \
-$(SDKROOT)/Device/SiliconLabs/EFM32TG/Source/GCC/startup_efm32tg.S
+$(SDKROOT)/Device/SiliconLabs/EFM32TG/Source/GCC/startup_efm32tg.S \
+$(CM3LIB)/bl_launcher.S
 
 ####################################################################
 # Rules                                                            #
