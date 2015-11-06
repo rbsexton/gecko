@@ -131,7 +131,6 @@ $(SDKROOT)/kits/common/bsp/bsp_stk_leds.c \
 $(SDKROOT)/emlib/src/em_assert.c \
 $(SDKROOT)/emlib/src/em_cmu.c \
 $(SDKROOT)/emlib/src/em_emu.c \
-$(SDKROOT)/emlib/src/em_dma.c \
 $(SDKROOT)/emlib/src/em_rtc.c \
 $(SDKROOT)/emlib/src/em_gpio.c \
 $(SDKROOT)/emlib/src/em_leuart.c \
