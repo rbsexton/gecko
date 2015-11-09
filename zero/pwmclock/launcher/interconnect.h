@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 typedef struct {
-	uint32_t jumptable;
+	uint32_t *jumptable;
 	uint32_t u0rxdata;
 
 	uint32_t pwmcalibrate; // One bit for each PWM source.

@@ -19,6 +19,6 @@ void (* const jumptable[])(void) __attribute__ ((section(".jumptable"))) = {
 	};
 
 void InitSharedData() {
-	theshareddata.jumptable = &jumptable;
+	theshareddata.jumptable = jumptable;
 }
 
