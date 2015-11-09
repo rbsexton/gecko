@@ -259,6 +259,7 @@ void RTC_IRQHandler(void) {
  	RTC_IntClear(RTC_IFC_COMP0);
 	UIButtonUpdate(! (GPIO->P[gpioPortC].DIN & 0x8000) );
 	DTimeUpdate();
+	theshareddata.ticks++;
     }
 
 /**************************************************************************//**
