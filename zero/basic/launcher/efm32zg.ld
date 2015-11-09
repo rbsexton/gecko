@@ -46,7 +46,7 @@ SECTIONS
 {
   .text :
   {
-    KEEP(*(.isr_vector))
+    KEEP(*(.vectors))
     KEEP(*(.jumptable))
     *(.text*)
 
