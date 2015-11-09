@@ -254,12 +254,19 @@ void DTimeUpdate() {
 		}
 	}
 
+static int rtc_ditherstate = 0;
+
 void RTC_IRQHandler(void) {
  	/* Clear interrupt source */
  	RTC_IntClear(RTC_IFC_COMP0);
 	UIButtonUpdate(! (GPIO->P[gpioPortC].DIN & 0x8000) );
 	DTimeUpdate();
-	theshareddata.ticks++;
+
+	// Generate a ms ticker.   1000/16 = 62.5.  So add 63 very other time.
+
+	rtc_ditherstate = !rtc_ditherstate;
+	if ( rtc_ditherstate ) theshareddata.ticks += 62;
+	else theshareddata.ticks += 63;
     }
 
 /**************************************************************************//**
@@ -375,6 +382,9 @@ int main(void)
    
   /* Re-config the HFRCO to the low band */
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
+
+  /* Switch over to 0 Wait state operation */
+  // It looks like the library takes care of it.  
 
 	interp_init(&dither_hmS, CC0_MAX,           60 );
 	interp_init(&dither_hMs, CC1_MAX,      60 * 60 );
