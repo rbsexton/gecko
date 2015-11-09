@@ -111,6 +111,8 @@ void initLeuart(void)
 }
 
 // Check for valid data, and if so clear it by pulling it out.
+// This should be more efficient than polling the interface because
+// crossing over into the slow clock area takes a long time.
 void LEUART0_IRQHandler(void) {
 	/* Store and reset pending interupts */
 	uint32_t leuartif = LEUART_IntGet(LEUART0);
@@ -349,14 +351,19 @@ int main(void)
   /* Initialize chip */
   CHIP_Init();
 
-  /* Start LFXO, and use LFXO for low-energy modules */
-  CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
   InitSharedData();
 
+  /* Start LFXO, and use LFXO for low-energy modules */
+  CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
   CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
 
   // Enable the external LFXO.
   CMU_OscillatorEnable(cmuOsc_LFXO,true,true);			
+
+  // Setup the LFOSC to run off an external clock.
+  // After enabling the osciallator.
+  CMU->CTRL = (CMU->CTRL & ~_CMU_CTRL_LFXOMODE_MASK)
+		| CMU_CTRL_LFXOMODE_DIGEXTCLK;
 
   /* Enabling clocks, all other remain disabled */
   CMU_ClockEnable(cmuClock_CORELE, true);     /* Enable CORELE clock */
