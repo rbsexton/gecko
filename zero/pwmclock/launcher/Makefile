@@ -127,6 +127,7 @@ INCLUDEPATHS += \
 
 C_SRC +=  \
 $(SDKROOT)/Device/SiliconLabs/EFM32ZG/Source/system_efm32zg.c \
+$(SDKROOT)/Device/SiliconLabs/EFM32ZG/Source/GCC/startup_efm32zg.c \
 $(SDKROOT)/kits/common/bsp/bsp_stk_leds.c \
 $(SDKROOT)/emlib/src/em_assert.c \
 $(SDKROOT)/emlib/src/em_cmu.c \
@@ -141,8 +142,7 @@ interconnect.c timekeeping.c launcher.c ui.c
 
 s_SRC += 
 
-S_SRC += $(SDKROOT)/Device/SiliconLabs/EFM32ZG/Source/GCC/startup_efm32zg.S  \
-$(CM3LIB)/bl_launcher.S
+S_SRC += $(CM3LIB)/bl_launcher.S
 
 ####################################################################
 # Rules                                                            #
