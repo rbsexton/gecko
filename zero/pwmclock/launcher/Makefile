@@ -98,6 +98,7 @@ DEPFLAGS = -MMD -MP -MF $(@:.o=.d)
 #
 override CFLAGS += -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m0plus -mthumb \
 -ffunction-sections -fdata-sections -fomit-frame-pointer \
+-D__STACK_SIZE=256 \
 -DDEBUG_EFM  $(DEPFLAGS)
 
 override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m0plus -mthumb -DDEBUG_EFM 

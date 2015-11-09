@@ -11,7 +11,7 @@
 MEMORY
 {
   FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 12288
-  RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 4096
+  RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 1024
 }
 
 /* Linker script to place sections and symbol values. Should be used together
@@ -132,7 +132,8 @@ SECTIONS
   .data : AT (__etext)
   {
     __data_start__ = .;
-    *(vtable)
+    *(.shareddata)
+    . = ALIGN (4);
     *(.data*)
     . = ALIGN (4);
     *(.ram)

@@ -82,8 +82,8 @@ Stamp? 0= [if] +xrefs [then]	\ enable cross references
 \ to leave room for the launcher
 
   $0000:3000 $0000:FFFF cdata section Zero	\ code section in boot Flash
-  $2000:0200 $2000:03FF idata section PROGd	\  IDATA
-  $2000:0400 $2000:0FFF udata section PROGu	\  UDATA
+  $2000:0400 $2000:09FF idata section PROGd	\  IDATA - Dictionary is here.
+  $2000:0A00 $2000:0FFF udata section PROGu	\  UDATA - Stacks are here.
 
 interpreter
 : prog Zero ;			\ synonym
