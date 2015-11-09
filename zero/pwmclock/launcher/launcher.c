@@ -346,14 +346,13 @@ void setupGPIO() {
  *****************************************************************************/
 int main(void)
 {
-
-  InitSharedData();
-
   /* Initialize chip */
   CHIP_Init();
 
   /* Start LFXO, and use LFXO for low-energy modules */
   CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
+  InitSharedData();
+
   CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
 
   // Enable the external LFXO.
