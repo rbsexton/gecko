@@ -193,6 +193,7 @@ void PWMUpdate(int a, int b, int c) {
 	if ( ! (theshareddata.pwmcalibrate & 0x4) ) TIMER_CompareBufSet(TIMER1,2,c);
 	}	
 
+#if 0 
 void TimeUpdate() {
 	int newpwm_a,newpwm_b,newpwm_c;
 
@@ -225,6 +226,8 @@ void TimeUpdate() {
 		}		
 	}
 
+#endif
+
 void DTimeUpdate() {
 	int newpwm_a,newpwm_b,newpwm_c;
 
@@ -256,20 +259,24 @@ void DTimeUpdate() {
 		}
 	}
 
-static int rtc_ditherstate = 0;
+static bool rtc_ditherstate = false;
 
 void RTC_IRQHandler(void) {
  	/* Clear interrupt source */
  	RTC_IntClear(RTC_IFC_COMP0);
 
+	TimeUpdate();
+	DTimeUpdate();
+
+
 	UpdateInputs( (GPIO->P[gpioPortC].DIN & 0x8000) == 0 );
 	UIStateUpdate();
-
-	DTimeUpdate();
+	NeedleUpdate();
+	
 
 	// Generate a ms ticker.   1000/16 = 62.5.  So add 63 very other time.
 
-	rtc_ditherstate = !rtc_ditherstate;
+	rtc_ditherstate = ! rtc_ditherstate;
 	if ( rtc_ditherstate ) theshareddata.ticks += 62;
 	else theshareddata.ticks += 63;
     }
@@ -366,6 +373,7 @@ int main(void)
 
   InitSharedData();
   timekeeping_init();
+  ui_init();	
 
   /* Start LFXO, and use LFXO for low-energy modules */
   CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
