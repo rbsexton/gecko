@@ -30,8 +30,8 @@
 #include "em_timer.h"
 
 #include "bl_launcher.h"
-#include "interconnect.h"
 #include "timekeeping.h"
+#include "interconnect.h"
 #include "bresenham.h"
 
 /* DEFINES */
@@ -360,6 +360,7 @@ int main(void)
   CHIP_Init();
 
   InitSharedData();
+  timekeeping_init();
 
   /* Start LFXO, and use LFXO for low-energy modules */
   CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);

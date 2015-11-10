@@ -1,4 +1,12 @@
+#define __TIMEKEEPING_H__
+
 // Expects to be called at 16Hz.   Returns 1 if we have a new value.
+typedef struct {
+	int h, m, s;
+	} sTimeHMS;
+
+void timekeeping_init();
+
 int next_second();
 
 // Target-specific things.

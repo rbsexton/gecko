@@ -1,5 +1,26 @@
+#include <stdint.h>
+
 #include "timekeeping.h"
 #include "interconnect.h"
+
+// Notes on timekeeping.    
+// There are two timebases, traditonal and decimal.
+// The fundamental timebase of the system is a 16Hz low-power oscillator.
+// For time in seconds, things are simple - just increment the seconds 
+// 1/16th of the time. 
+
+// ------------------------------------------------------
+// Data Structures
+// ------------------------------------------------------
+sTimeHMS TimeOfDay;
+sTimeHMS TOD_Decimal;
+	
+//
+void timekeeping_init() {
+	theshareddata.tod_traditional = &TimeOfDay;
+	theshareddata.tod_decimal = &TOD_Decimal;
+	}
+
 
 // Expects to be called at 16Hz. - Not currently used.
 int next_second() {
