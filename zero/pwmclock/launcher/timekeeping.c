@@ -21,29 +21,20 @@ void timekeeping_init() {
 	theshareddata.tod_decimal = &TOD_Decimal;
 	}
 
-
-// Expects to be called at 16Hz. - Not currently used.
-int next_second() {
+// Expects to be called at 16Hz.
+void TimeUpdate() {
 	static int count = 0;
-	tSharedData *p = &theshareddata;
+	sTimeHMS *p = theshareddata.tod_traditional;
+
 	count++;
-	if (count < 16 ) return(0); // If we haven't wrapped, return 0;
-	
+	if (count < 16 ) return; // If we haven't wrapped, return;
 	count = 0;
 	
-	p->count_a_sec++;
-	if (p->count_a_sec < 60 ) return(1);
-	p->count_a_sec=0;
+	p->s++; if (p->s < 60 ) return; else p->s=0;
+	p->m++; if (p->m < 60 ) return; else p->m=0;
+	p->h++; if (p->h < 24 ) return; else p->h=0;
 	
-	p->count_a_min++;
-	if (p->count_a_min < 60 ) return(1);
-	p->count_a_min=0;
-
-	p->count_a_h++;
-	if (p->count_a_h < 24 ) return(1);
-	p->count_a_h=0;
-	
-	return(1);
+	return;
 	}
 
 // Call this at 1Hz.
