@@ -1,9 +1,17 @@
 #define WAKE_COUNT 15
 #define BOUNCE_COUNT 6 
 
+typedef struct {
+	int value;
+	int limit;
+	bool active;
+	} sCounter;
+
 typedef enum { 
-	tUIState_init = 0,   // Normalcy
-	tUIState_waking = 1, // First press, waiting 2s for next state
+	tUIState_run = 0, // Run
+	tUIState_set_hours = 1, // M & S are zeroed.
+	tUIState_set_mins  = 2, // H Normal, S are zeroed.
+	
 	tUIState_awake  = 2,
 	} tUIButtonState;
 
@@ -15,5 +23,7 @@ typedef enum { // A basic animation
 	tNeedleState_bounce_l1 = 4,
 	} tUINeedleState;
 	
+void UpdateInputs(bool pressed);
+void UIStateUpdate();
 	
 	

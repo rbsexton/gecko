@@ -34,6 +34,8 @@
 #include "interconnect.h"
 #include "bresenham.h"
 
+#include "ui.h"
+
 /* DEFINES */
 #define CC0_MAX 887 
 #define CC1_MAX 870 
@@ -259,7 +261,10 @@ static int rtc_ditherstate = 0;
 void RTC_IRQHandler(void) {
  	/* Clear interrupt source */
  	RTC_IntClear(RTC_IFC_COMP0);
-	UIButtonUpdate(! (GPIO->P[gpioPortC].DIN & 0x8000) );
+
+	UpdateInputs( (GPIO->P[gpioPortC].DIN & 0x8000) == 0 );
+	UIStateUpdate();
+
 	DTimeUpdate();
 
 	// Generate a ms ticker.   1000/16 = 62.5.  So add 63 very other time.
