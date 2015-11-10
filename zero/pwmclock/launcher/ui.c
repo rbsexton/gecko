@@ -8,8 +8,15 @@
 /// Attempt #2.  Build this so that it's somewhat like ladder logic.
 
 #include <stdbool.h>
+
 #include "ui.h"
 
+void ui_init() {
+	;
+	}
+
+// ------------------------------------------------------------
+// State objects
 // Here are the various counters that we can use as state inputs.
 sCounter Input_pressed    = { 0, 2, false };
 sCounter Input_pressed1s  = { 0, 16, false };
@@ -43,22 +50,34 @@ void UpdateInputs(bool pressed) {
 // -----------------------------------------------------------
 // Button State machine
 // -----------------------------------------------------------
-tUIButtonState UIState = tUIState_run;
+static tUIButtonState UIState = tUIState_run;
 
-void UIStateUpdate() {
+void UIStateUpdate() {	
 	switch(UIState) {
 		case tUIState_run:
 			if (Input_timeout.active )  { UIState = tUIState_run; return; }
 			if (Input_pressed3s.active) { UIState = tUIState_set_hours; return; }
 		default:
+			if (Input_timeout.active )  { UIState = tUIState_run; return; }
 			break;
 	}
 }
 
-// -----------------------------------------------------------
-// Animation State machine for the needles. 
-// @returns 0 for off, 1 for on, -1 for normal
-// -----------------------------------------------------------
+// There is a presumption here that these get updated at 16Hz.
+// Update the Needles.
+
+void Needle0Update() {
+	switch(UIState) {
+		default:
+			break;
+		}
+	
+}
+
+void NeedleUpdate() {
+	Needle0Update();
+	}
+
 #if 0
 tUINeedleState UINeedleState[3] = { 0,0,0 };
 int UINeedle_counter[3]; 

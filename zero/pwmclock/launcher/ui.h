@@ -22,8 +22,9 @@ typedef enum { // A basic animation
 	tNeedleState_bounce_h1 = 3,
 	tNeedleState_bounce_l1 = 4,
 	} tUINeedleState;
-	
+
+void ui_init();	
 void UpdateInputs(bool pressed);
 void UIStateUpdate();
-	
+void NeedleUpdate();
 	
