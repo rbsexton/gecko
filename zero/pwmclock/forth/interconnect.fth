@@ -9,6 +9,8 @@ struct /INTER	\ -- size
 	ptr inter.jumptable
 	ptr u0rxdata 
 	int inter.ticks 
+	int inter.tod.tra
+	int inter.tod.dec 
 end-struct
 
 : jt icroot @ ; 

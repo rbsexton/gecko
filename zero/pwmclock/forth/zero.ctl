@@ -177,7 +177,6 @@ cell equ cell				\ size of a cell (16 bits)
 
   \ include %LocalCM3%/bitband
   \ include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
-  include %AppDir%/ZeroGecko		\ Various Addresses
 
 timebase? [if]
   include %CommonDir%/timebase		\ time base common code, MUST be before SysTickxxx
@@ -226,6 +225,7 @@ external
 include %AppDir%/interconnect
 include %AppDir%/Delays
 include %DriverDir%/serLE_pi \ polled serial driver
+include %AppDir%/ZeroGecko		\ Various Addresses
 
 \ include %AppDir%/startup
 ' hex AtCold

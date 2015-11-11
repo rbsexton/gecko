@@ -12,4 +12,10 @@ hex
 40010000 constant _TIMER0
 40010400 constant _TIMER1
 
+
+: .hms ( addr -- ) base @ swap decimal dup ? dup 4+ ? 8 + ? base ! ;
+: hms ( -- ) icroot inter.tod.tra @ .hms ; 
+: dhms ( -- ) icroot inter.tod.dec @ .hms ; 
+
+
 decimal
