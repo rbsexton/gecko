@@ -201,7 +201,6 @@ void RTC_IRQHandler(void) {
 	UIStateUpdate();
 	NeedleUpdate();
 	
-
 	// Generate a ms ticker.   1000/16 = 62.5.  So add 63 very other time.
 
 	rtc_ditherstate = ! rtc_ditherstate;

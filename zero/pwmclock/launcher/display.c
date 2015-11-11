@@ -7,17 +7,13 @@
 
 #include "display.h"
 
-typedef struct {
-	int h,m,s;
-	} sNeedleVal;
-
 #define CC0_MAX 887 
 #define CC1_MAX 870 
 #define CC2_MAX 890 
 	
 static sNeedleVal NeedleMaxPWM   = { CC0_MAX, CC1_MAX, CC2_MAX};
-static sNeedleVal NeedleValHMS   = { 0,0,0 };
-static sNeedleVal NeedleValDTime = { 0,0,0 };
+sNeedleVal NeedleValHMS   = { 0,0,0 };
+sNeedleVal NeedleValDTime = { 0,0,0 };
 
 // The interpolators
 tInterpKernel dither_hmS;

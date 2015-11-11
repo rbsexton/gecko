@@ -9,8 +9,18 @@
 /// That includes concepts like relays that are true once per second, etc.
 #include <stdbool.h>
 
+#include "em_timer.h"
+
+#include "display.h"
 #include "ui.h"
 
+typedef enum {
+	TIMESCALE_HMS = 0,
+	TIMESCALE_DTIME = 1
+	} tTimescale;
+	
+tTimescale timescale = TIMESCALE_HMS;
+	
 void ui_init() {
 	;
 	}
@@ -91,16 +101,37 @@ void UIStateUpdate() {
 // There is a presumption here that these get updated at 16Hz.
 // Update the Needles.
 
-void Needle0Update() {
+void Needle0Update(sNeedleVal *timeval) {
 	switch(UIState) {
 		default:
+			TIMER_CompareBufSet(TIMER1,0,timeval->s);
 			break;
 		}
-	
-}
+	}
+
+void Needle1Update(sNeedleVal *timeval) {
+	switch(UIState) {
+		default:
+			TIMER_CompareBufSet(TIMER1,1,timeval->m);
+			break;
+		}
+	}
+
+void Needle2Update(sNeedleVal *timeval) {
+	switch(UIState) {
+		default: 
+			TIMER_CompareBufSet(TIMER1,2,timeval->m);
+			break;
+		}
+	}
 
 void NeedleUpdate() {
-	Needle0Update();
+	sNeedleVal *s;
+	if ( timescale == TIMESCALE_HMS ) s = &NeedleValHMS;
+	else s = &NeedleValDTime;
+	Needle0Update(s);
+	Needle1Update(s);
+	Needle2Update(s);
 	}
 
 #if 0
