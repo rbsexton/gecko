@@ -184,7 +184,6 @@ timebase? [if]
   include %CommonDir%/Delays		\ time delays
   ' start-timers AtCold
 [else]
-  \ include %CommonDir%/Delays
 [then]
 
 environment? [if]
@@ -225,6 +224,7 @@ external
 \ *******************
 
 include %AppDir%/interconnect
+include %AppDir%/Delays
 include %DriverDir%/serLE_pi \ polled serial driver
 
 \ include %AppDir%/startup

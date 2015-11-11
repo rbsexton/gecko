@@ -3,9 +3,12 @@
 
 $20000000 equ ICROOT
 
+: ticks icroot inter.ticks @ ; 
+
 struct /INTER	\ -- size
-	ptr jumptable
+	ptr inter.jumptable
 	ptr u0rxdata 
+	int inter.ticks 
 end-struct
 
 : jt icroot @ ; 
