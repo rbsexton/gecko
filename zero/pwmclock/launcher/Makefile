@@ -139,7 +139,7 @@ $(SDKROOT)/emlib/src/em_gpio.c \
 $(SDKROOT)/emlib/src/em_leuart.c \
 $(SDKROOT)/emlib/src/em_timer.c \
 $(CM3LIB)/bresenham.c \
-interconnect.c timekeeping.c launcher.c ui.c
+interconnect.c timekeeping.c launcher.c ui.c display.c
 
 s_SRC += 
 

@@ -3,6 +3,7 @@
 #include "timekeeping.h"
 #include "interconnect.h"
 #include "bresenham.h"
+#include "display.h"
 
 // Notes on timekeeping.    
 // There are two timebases, traditonal and decimal.
@@ -27,11 +28,12 @@ void TimeUpdate() {
 	count++;
 	if (count < 15 ) return; // If we haven't wrapped, return;
 	count = 0;
+
+	DisplayAdvanceSecond();
 	
 	p->s++; if (p->s < 60 ) return; else p->s=0;
 	p->m++; if (p->m < 60 ) return; else p->m=0;
 	p->h++; if (p->h < 24 ) return; else p->h=0;
-	
 	return;
 	}
 
@@ -40,20 +42,18 @@ void TimeUpdate() {
 // Decimal time.
 // --------------------------------------------------------------
 // --------------------------------------------------------------
-// Hooks.
-static void DTimeNewSecond() { ; }
 
 // DTime requires an interpolator.
-
 static tInterpKernel dither_dtime;
+
 void DTimeUpdate() {
 	sTimeHMS *p = theshareddata.tod_decimal;
 
 	if ( interp_next(&dither_dtime) ) { // Only update on the decimal second.
+		DisplayAdvanceDTime();
 		p->s++; if (p->s < 99 ) return; else p->s=0;
 		p->m++; if (p->m < 99 ) return; else p->m=0;
 		p->h++; if (p->h <  9 ) return; else p->h=0;
-		DTimeNewSecond();
 		}
 	
 	return;
@@ -69,8 +69,6 @@ void timekeeping_init() {
 	// Setup the interpolator.
 	interp_init(&dither_dtime, 125, 1728); // Generate Decimal Seconds
 	}
-
-
 
 // Call this at 1Hz.
 int next_second_pwm(int old) {

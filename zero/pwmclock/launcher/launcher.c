@@ -35,20 +35,11 @@
 #include "bresenham.h"
 
 #include "ui.h"
+#include "display.h"
 
 /* DEFINES */
-#define CC0_MAX 887 
-#define CC1_MAX 870 
-#define CC2_MAX 890 
 
 /* GLOBAL VARIABLES */
-tInterpKernel dither_hmS;
-tInterpKernel dither_hMs;
-tInterpKernel dither_Hms;
-
-tInterpKernel dither_dtime_hmS;
-tInterpKernel dither_dtime_hMs;
-tInterpKernel dither_dtime_Hms;
 
 /* Defining the LEUART1 initialization data */
 const LEUART_Init_TypeDef leuart0Init =
@@ -192,83 +183,19 @@ void PWMUpdate(int a, int b, int c) {
 	if ( ! (theshareddata.pwmcalibrate & 0x4) ) TIMER_CompareBufSet(TIMER1,2,c);
 	}	
 
-#if 0 
-void TimeUpdate() {
-	int newpwm_a,newpwm_b,newpwm_c;
-
- 	newpwm_a = TIMER1->CC[0].CCV; 
- 	newpwm_b = TIMER1->CC[1].CCV; 	
-	newpwm_c = TIMER1->CC[2].CCV;
-
- 	// First, the once per second things.
-	if ( next_second() ) {
-		LEDUpdate();	  
-		newpwm_a += interp_next(&dither_hmS);
-		if ( newpwm_a > CC0_MAX) {
-			interp_reset(&dither_hmS);
-			newpwm_a = 0;
-			}
-			
-		newpwm_b += interp_next(&dither_hMs);
-		if (newpwm_b > CC1_MAX) {
-			interp_reset(&dither_hMs);
-			newpwm_b = 0;
-			}
-
-		// Hours
-		newpwm_c += interp_next(&dither_Hms);
-		if (newpwm_c > CC2_MAX) {
-			interp_reset(&dither_Hms);
-			newpwm_c = 0;
-			}
-		PWMUpdate(newpwm_a,newpwm_b,newpwm_c);		
-		}		
-	}
-
-#endif
-
-#if 0 
-void DTimeUpdate() {
-	int newpwm_a,newpwm_b,newpwm_c;
-
-	 // First, the once per second things.
-	 newpwm_a = TIMER1->CC[0].CCV; 
-	 newpwm_b = TIMER1->CC[1].CCV; 
-	 newpwm_c = TIMER1->CC[2].CCV; 
-
-	if ( interp_next(&dither_dtime) ) { // Only update on the decimal second.
-		newpwm_a += interp_next(&dither_dtime_hmS);
-		if ( newpwm_a > CC0_MAX) {
-			interp_reset(&dither_dtime_hmS);
-			newpwm_a = 0;
-			}
-			
-		newpwm_b += interp_next(&dither_dtime_hMs);
-		if ( newpwm_b > CC1_MAX) {
-			interp_reset(&dither_dtime_hMs);
-			newpwm_b = 0;
-			}
-			
-		newpwm_c += interp_next(&dither_dtime_Hms);
-		if ( newpwm_c > CC2_MAX) {
-			interp_reset(&dither_dtime_Hms);
-			newpwm_c = 0;
-			}		
-
-		PWMUpdate(newpwm_a,newpwm_b,newpwm_c);	
-		}
-	}
-#endif
-
 static bool rtc_ditherstate = false;
 
+// -----------------------------------------------------------------
+// This drives everything in this system.
+// -----------------------------------------------------------------
 void RTC_IRQHandler(void) {
  	/* Clear interrupt source */
  	RTC_IntClear(RTC_IFC_COMP0);
 
+	// These two generate all display data.   The UI code 
+	// Decides whether or not to use it.
 	TimeUpdate();
 	DTimeUpdate();
-
 
 	UpdateInputs( (GPIO->P[gpioPortC].DIN & 0x8000) == 0 );
 	UIStateUpdate();
@@ -374,7 +301,8 @@ int main(void)
 
   InitSharedData();
   timekeeping_init();
-  ui_init();	
+  ui_init();		
+  display_init();
 
   /* Start LFXO, and use LFXO for low-energy modules */
   CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
@@ -400,14 +328,6 @@ int main(void)
 
   /* Switch over to 0 Wait state operation */
   // It looks like the library takes care of it.  
-
-	interp_init(&dither_hmS, CC0_MAX,           60 );
-	interp_init(&dither_hMs, CC1_MAX,      60 * 60 );
-	interp_init(&dither_Hms, CC2_MAX, 12 * 60 * 60 );
-
-	interp_init(&dither_dtime_hmS, CC0_MAX,    100);
-	interp_init(&dither_dtime_hMs, CC1_MAX,  10000);
-	interp_init(&dither_dtime_Hms, CC2_MAX, 100000);
 
   /* Initialize LEUART */
   initLeuart();
