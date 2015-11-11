@@ -7,6 +7,11 @@ typedef struct {
 	bool active;
 	} sCounter;
 
+typedef struct {
+	int state; // Start at zero.
+	bool active;
+	} sSequence;
+
 typedef enum { 
 	tUIState_run = 0, // Run
 	tUIState_set_hours = 1, // M & S are zeroed.
