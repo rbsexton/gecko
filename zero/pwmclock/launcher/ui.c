@@ -46,6 +46,10 @@ static void refresh_downcounter(sCounter *p, bool input) {
 	refresh_upcounter(p, !input);
 	}
 
+static void resetcounter(sCounter *p) {
+	p->value = 0;
+	}
+
 // Sequencer objects 
 // Here are the various counters that we can use as state inputs.
 sSequence Relay_Once = { 0, true };
@@ -87,11 +91,21 @@ void UpdateInputs(bool pressed) {
 // -----------------------------------------------------------
 static tUIButtonState UIState = tUIState_run;
 
+static switch_timescale() {
+	if ( timescale == TIMESCALE_HMS ) timescale = TIMESCALE_DTIME;
+	else timescale = TIMESCALE_HMS;
+	}
+
 void UIStateUpdate() {	
 	switch(UIState) {
 		case tUIState_run:
 			if (Input_timeout.active )  { UIState = tUIState_run; return; }
-			if (Input_pressed3s.active) { UIState = tUIState_set_hours; return; }
+			if (Input_pressed3s.active) { 
+				switch_timescale();
+				resetcounter(&Input_pressed3s);
+				return;
+			 	}
+			// if (Input_pressed3s.active) { UIState = tUIState_set_hours; return; }
 		default:
 			if (Input_timeout.active )  { UIState = tUIState_run; return; }
 			break;
