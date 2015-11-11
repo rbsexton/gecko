@@ -46,7 +46,6 @@ tInterpKernel dither_hmS;
 tInterpKernel dither_hMs;
 tInterpKernel dither_Hms;
 
-tInterpKernel dither_dtime;
 tInterpKernel dither_dtime_hmS;
 tInterpKernel dither_dtime_hMs;
 tInterpKernel dither_dtime_Hms;
@@ -228,6 +227,7 @@ void TimeUpdate() {
 
 #endif
 
+#if 0 
 void DTimeUpdate() {
 	int newpwm_a,newpwm_b,newpwm_c;
 
@@ -258,6 +258,7 @@ void DTimeUpdate() {
 		PWMUpdate(newpwm_a,newpwm_b,newpwm_c);	
 		}
 	}
+#endif
 
 static bool rtc_ditherstate = false;
 
@@ -404,7 +405,6 @@ int main(void)
 	interp_init(&dither_hMs, CC1_MAX,      60 * 60 );
 	interp_init(&dither_Hms, CC2_MAX, 12 * 60 * 60 );
 
-	interp_init(&dither_dtime, 125, 1728); // Generate Decimal Seconds
 	interp_init(&dither_dtime_hmS, CC0_MAX,    100);
 	interp_init(&dither_dtime_hMs, CC1_MAX,  10000);
 	interp_init(&dither_dtime_Hms, CC2_MAX, 100000);

@@ -7,6 +7,11 @@ typedef struct {
 
 void timekeeping_init();
 
+// Designed to be called at 16Hz
+void TimeUpdate();
+void DTimeUpdate();
+
+
 int next_second();
 
 // Target-specific things.
