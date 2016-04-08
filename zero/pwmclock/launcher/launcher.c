@@ -28,6 +28,8 @@
 #include "em_gpio.h"
 #include "em_rtc.h"
 #include "em_timer.h"
+#include "em_prs.h"
+#include "em_pcnt.h"
 
 #include "bl_launcher.h"
 #include "timekeeping.h"
@@ -264,6 +266,48 @@ void setupTimers() {
 }
 
 /**************************************************************************//**
+ * @brief Initialize the pulse counter that we use for Quadrature.
+ * 
+ *****************************************************************************/
+void setupPulseCounter() {
+	PCNT_Init_TypeDef pcntInit =
+  {
+    .mode       = pcntModeExtQuad,    /* clocked by PCNT1_S0IN */
+    .counter    = 0x4000,             /* Set initial value to 0 */
+    .top        = 0x8000,             /* Set top to max value */
+    .negEdge    = false,              /* positive edges */
+    .countDown  = false,              /* up count */
+    .filter     = false,               /* filter enabled */
+
+    pcntPRSCh0,                               /* PRS channel 0 selected as S0IN. */              \
+    pcntPRSCh0                                /* PRS channel 0 selected as S1IN. */              \
+
+  };
+
+  /* Initialize Pulse Counter */
+  PCNT_Init(PCNT0, &pcntInit);
+
+  /* Enable PCNT direction change interrupt */
+  // PCNT_IntEnable(PCNT1, PCNT_IF_DIRCNG);
+
+  /* Enable PCNT1 interrupt vector in NVIC */
+  // NVIC_EnableIRQ(PCNT1_IRQn);
+
+  /* PRS setup */
+  /* Select GPIO as source and PD0 as signal 
+     The GPIO generates a level signal and the
+     UART consumes a pulse so we have to use
+     the edge detector to generate the pulse */
+  PRS_SourceSignalSet(0, PRS_CH_CTRL_SOURCESEL_GPIOL, PRS_CH_CTRL_SIGSEL_GPIOPIN0, prsEdgeOff);
+  PRS_SourceSignalSet(1, PRS_CH_CTRL_SOURCESEL_GPIOL, PRS_CH_CTRL_SIGSEL_GPIOPIN1, prsEdgeOff);
+
+	PCNT_PRSInputEnable(PCNT0, pcntPRSCh0, true);
+	PCNT_PRSInputEnable(PCNT0, pcntPRSCh1, true);
+	
+}
+
+
+/**************************************************************************//**
  * @brief Initialize the GPIOs.
  * 
  * THe zero gecko board has LEDs on PC10 & PC11
@@ -274,6 +318,13 @@ void setupGPIO() {
   GPIO_PinModeSet(gpioPortC, 13, gpioModePushPullDrive, 0); // Timer1 CC2
   GPIO_PinModeSet(gpioPortD,  6, gpioModePushPullDrive, 0); // Timer1 CC0
   GPIO_PinModeSet(gpioPortD,  7, gpioModePushPullDrive, 0); // Timer1 CC1
+
+  GPIO_PinModeSet(gpioPortA, 0, gpioModeInput, 0); // GPIO Input
+  GPIO_PinModeSet(gpioPortA, 1, gpioModeInput, 0); // GPIO Input
+
+  /* Enable PRS sense on GPIO and disable interrupt sense */
+  // This is just two bits in a register.
+  GPIO_InputSenseSet(GPIO_INSENSE_PRS, _GPIO_INSENSE_RESETVALUE);
 
   GPIO_PinModeSet(gpioPortC, 15, gpioModeInputPull, 0); // GPIO Input
 	GPIO->P[gpioPortC].DOUT = 0x8000;
@@ -321,6 +372,8 @@ int main(void)
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
   CMU_ClockEnable(cmuClock_TIMER1, true);
+  CMU_ClockEnable(cmuClock_PCNT0, true);
+  CMU_ClockEnable(cmuClock_PRS, true);
    
   /* Re-config the HFRCO to the low band */
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
@@ -335,6 +388,7 @@ int main(void)
   	setupRtc();
 	setupTimers();
 	setupGPIO();
+	setupPulseCounter();
 
 SayHello();
 

@@ -222,13 +222,20 @@ external
 \ *S Application code
 \ *******************
 
+vocabulary clock
+
 include %AppDir%/interconnect
 include %AppDir%/Delays
 include %DriverDir%/serLE_pi \ polled serial driver
 include %AppDir%/ZeroGecko		\ Various Addresses
 
-\ include %AppDir%/startup
-' hex AtCold
+only forth also clock definitions
+
+include %AppDir%/clock
+include %AppDir%/startup
+
+\ ' hex AtCold
+' StartApp AtCold
 
 \ ***************
 \ *S Finishing up

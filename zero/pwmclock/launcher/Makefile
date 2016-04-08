@@ -138,6 +138,8 @@ $(SDKROOT)/emlib/src/em_rtc.c \
 $(SDKROOT)/emlib/src/em_gpio.c \
 $(SDKROOT)/emlib/src/em_leuart.c \
 $(SDKROOT)/emlib/src/em_timer.c \
+$(SDKROOT)/emlib/src/em_prs.c \
+$(SDKROOT)/emlib/src/em_pcnt.c \
 $(CM3LIB)/bresenham.c \
 interconnect.c timekeeping.c launcher.c ui.c display.c
 

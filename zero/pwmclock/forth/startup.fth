@@ -6,6 +6,7 @@
 \ -------------------------------------------
 : StartApp
 	hex
+	only forth also clock definitions
 ;
 
 
