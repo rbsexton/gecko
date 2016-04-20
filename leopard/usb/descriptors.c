@@ -104,7 +104,7 @@ const uint8_t USBDESC_configDesc[] __attribute__ ((aligned(4)))=
   USB_CDC_ACM_FND_DESCSIZE, /* bFunctionLength     */
   USB_CS_INTERFACE_DESCRIPTOR, /* bDescriptorType  */
   USB_CLASS_CDC_ACMFN,    /* bDescriptorSubtype    */
-  0x02,                   /* bmCapabilities        */
+  0x00,                   /* bmCapabilities        */
   /* The capabilities that this configuration supports:                   */
   /* D7..D4: RESERVED (Reset to zero)                                     */
   /* D3: 1 - Device supports the notification Network_Connection.         */
