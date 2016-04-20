@@ -362,61 +362,6 @@ static int LineCodingReceived(USB_Status_TypeDef status,
   /* We have received new serial port communication settings from USB host. */
   if ((status == USB_STATUS_OK) && (xferred == 7))
   {
-    /* Check bDataBits, valid values are: 5, 6, 7, 8 or 16 bits. */
-    if (cdcLineCoding.bDataBits == 5)
-      frame |= USART_FRAME_DATABITS_FIVE;
-
-    else if (cdcLineCoding.bDataBits == 6)
-      frame |= USART_FRAME_DATABITS_SIX;
-
-    else if (cdcLineCoding.bDataBits == 7)
-      frame |= USART_FRAME_DATABITS_SEVEN;
-
-    else if (cdcLineCoding.bDataBits == 8)
-      frame |= USART_FRAME_DATABITS_EIGHT;
-
-    else if (cdcLineCoding.bDataBits == 16)
-      frame |= USART_FRAME_DATABITS_SIXTEEN;
-
-    else
-      return USB_STATUS_REQ_ERR;
-
-    /* Check bParityType, valid values are: 0=None 1=Odd 2=Even 3=Mark 4=Space  */
-    if (cdcLineCoding.bParityType == 0)
-      frame |= USART_FRAME_PARITY_NONE;
-
-    else if (cdcLineCoding.bParityType == 1)
-      frame |= USART_FRAME_PARITY_ODD;
-
-    else if (cdcLineCoding.bParityType == 2)
-      frame |= USART_FRAME_PARITY_EVEN;
-
-    else if (cdcLineCoding.bParityType == 3)
-      return USB_STATUS_REQ_ERR;
-
-    else if (cdcLineCoding.bParityType == 4)
-      return USB_STATUS_REQ_ERR;
-
-    else
-      return USB_STATUS_REQ_ERR;
-
-    /* Check bCharFormat, valid values are: 0=1 1=1.5 2=2 stop bits */
-    if (cdcLineCoding.bCharFormat == 0)
-      frame |= USART_FRAME_STOPBITS_ONE;
-
-    else if (cdcLineCoding.bCharFormat == 1)
-      frame |= USART_FRAME_STOPBITS_ONEANDAHALF;
-
-    else if (cdcLineCoding.bCharFormat == 2)
-      frame |= USART_FRAME_STOPBITS_TWO;
-
-    else
-      return USB_STATUS_REQ_ERR;
-
-    /* Program new UART baudrate etc. */
-    CDC_UART->FRAME = frame;
-    USART_BaudrateAsyncSet(CDC_UART, 0, cdcLineCoding.dwDTERate, usartOVS16);
-
     return USB_STATUS_OK;
   }
   return USB_STATUS_REQ_ERR;
