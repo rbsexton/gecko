@@ -319,27 +319,18 @@ static int UsbDataReceived(USB_Status_TypeDef status,
 
   if ((status == USB_STATUS_OK) && (xferred > 0))
   {
+
+	// Put the data into the ringbuffer.  This could also be done with bulk.
+
+	uint32_t i;
+	for(i = 0; i < xferred; i++) {
+		ringbuffer_addchar(&rb, usbRxBuffer[usbRxIndex][i]);
+	}
+	
     usbRxIndex ^= 1; // Switch to the other one.
-
-    if (!dmaTxActive)
-    {
-      /* dmaTxActive = false means that a new UART Tx DMA can be started. */
-      dmaTxActive = true;
-      DMA_ActivateBasic(CDC_UART_TX_DMA_CHANNEL, true, false,
-                        (void *) &(CDC_UART->TXDATA),
-                        (void *) usbRxBuffer[ usbRxIndex ^ 1 ],
-                        xferred - 1);
-
-      /* Start a new USB receive transfer. */
-      USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
-                CDC_USB_RX_BUF_SIZ, UsbDataReceived);
-    }
-    else
-    {
-      /* The UART transmit DMA callback function will start a new DMA. */
-      usbRxActive      = false;
-      usbBytesReceived = xferred;
-    }
+    /* Start a new USB receive transfer. */
+    USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
+              CDC_USB_RX_BUF_SIZ, UsbDataReceived);
   }
   return USB_STATUS_OK;
 }
