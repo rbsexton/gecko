@@ -108,7 +108,7 @@ CM3LIB=../../../cm3lib
 # NOTE: The -Wl,--gc-sections flag may interfere with debugging using gdb.
 #
 override LDFLAGS += -Xlinker -Map=$(LST_DIR)/$(PROJECTNAME).map -mcpu=cortex-m3 \
--mthumb -T$(SDK)/Device/SiliconLabs/EFM32LG/Source/GCC/efm32lg.ld \
+ -mthumb -Tefm32lg.ld \
  -Wl,--gc-sections 
 
 LIBS = -Wl,--start-group -lgcc -lc -lnosys   -Wl,--end-group
