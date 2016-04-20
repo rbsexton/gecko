@@ -301,6 +301,10 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 
+static int UsbDataTransmitted(USB_Status_TypeDef status,
+                            uint32_t xferred,
+							uint32_t remaining);
+
 /**************************************************************************//**
  * @brief Callback function called whenever a new packet with data is received
  *        on USB.
@@ -322,11 +326,14 @@ static int UsbDataReceived(USB_Status_TypeDef status,
 
 	// Put the data into the ringbuffer.  This could also be done with bulk.
 
-	uint32_t i;
-	for(i = 0; i < xferred; i++) {
-		ringbuffer_addchar(&rb, usbRxBuffer[usbRxIndex][i]);
-	}
+	// uint32_t i;
+	// for(i = 0; i < xferred; i++) {
+	//	ringbuffer_addchar(&rb, usbRxBuffer[usbRxIndex][i]);
+	//}
 	
+	USBD_Write(CDC_EP_DATA_IN, (void*) usbRxBuffer[ usbRxIndex ],
+               xferred, UsbDataTransmitted);
+    
     usbRxIndex ^= 1; // Switch to the other one.
     /* Start a new USB receive transfer. */
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
@@ -394,30 +401,9 @@ static int UsbDataTransmitted(USB_Status_TypeDef status,
   (void) remaining;            /* Unused parameter. */
 
   if (status == USB_STATUS_OK)
-  {
-    if (!dmaRxActive)
     {
-      /* dmaRxActive = false means that a new UART Rx DMA can be started. */
-
-      USBD_Write(CDC_EP_DATA_IN, (void*) uartRxBuffer[ uartRxIndex ^ 1],
-                 uartRxCount, UsbDataTransmitted);
-      LastUsbTxCnt = uartRxCount;
-
-      dmaRxActive    = true;
-      dmaRxCompleted = true;
-      DMA_ActivateBasic(CDC_UART_RX_DMA_CHANNEL, true, false,
-                        (void *) uartRxBuffer[ uartRxIndex ],
-                        (void *) &(CDC_UART->RXDATA),
-                        CDC_USB_TX_BUF_SIZ - 1);
-      uartRxCount = 0;
-      USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
+      // USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
     }
-    else
-    {
-      /* The UART receive DMA callback function will start a new DMA. */
-      usbTxActive = false;
-    }
-  }
   return USB_STATUS_OK;
 }
 
