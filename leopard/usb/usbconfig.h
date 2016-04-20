@@ -43,12 +43,10 @@ extern "C" {
 *****************************************************************************/
 
 /* Define interface numbers */
-#define VUD_INTERFACE_NO        ( 0 )
-#define CDC_CTRL_INTERFACE_NO   ( 1 )
-#define CDC_DATA_INTERFACE_NO   ( 2 )
-#define NUM_INTERFACES          ( 3 )
+#define CDC_CTRL_INTERFACE_NO   ( 0 )
+#define CDC_DATA_INTERFACE_NO   ( 1 )
+#define NUM_INTERFACES          ( 2 )
 
-#define VUD_NUM_EP_USED         ( 0 ) /* Number of EP's used by VUD function */
 #define CDC_NUM_EP_USED         ( 3 ) /* Number of EP's used by CDC function */
 
 /* Define USB endpoint addresses for the interfaces */

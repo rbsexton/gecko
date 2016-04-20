@@ -23,7 +23,6 @@
 
 #include "em_usb.h"
 #include "msdd.h"
-#include "vud.h"
 #include "cdc.h"
 #include "descriptors.h"
 
@@ -76,7 +75,6 @@ int main( void )
   /* Initialize LED driver */
   BSP_LedsInit();
 
-  VUD_Init();                   /* Initialize the vendor unique device. */
   CDC_Init();                   /* Initialize the communication class device. */
 
   /* Initialize and start USB device stack. */
@@ -111,12 +109,7 @@ int SetupCmd(const USB_Setup_TypeDef *setup)
   int retVal;
 
   /* Call SetupCmd handlers for all functions within the composite device. */
-  retVal = VUD_SetupCmd( setup );
-
-  if ( retVal == USB_STATUS_REQ_UNHANDLED )
-  {
-    retVal = CDC_SetupCmd( setup );
-  }
+  retVal = CDC_SetupCmd( setup );
 
   return retVal;
 }

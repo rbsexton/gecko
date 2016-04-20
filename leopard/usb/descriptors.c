@@ -33,7 +33,7 @@ const USB_DeviceDescriptor_TypeDef USBDESC_deviceDesc __attribute__ ((aligned(4)
   .bNumConfigurations = 1
 };
 
-#if ( NUM_EP_USED != (MSD_NUM_EP_USED + VUD_NUM_EP_USED + CDC_NUM_EP_USED) )
+#if ( NUM_EP_USED != (MSD_NUM_EP_USED + CDC_NUM_EP_USED) )
 #error "Incorrect endpoint count."
 #endif
 
@@ -63,18 +63,6 @@ const uint8_t USBDESC_configDesc[] __attribute__ ((aligned(4)))=
   CONFIG_DESC_BM_RESERVED_D7 |    /* bmAttrib: Self powered            */
   CONFIG_DESC_BM_SELFPOWERED,
   CONFIG_DESC_MAXPOWER_mA( 100 ), /* bMaxPower: 100 mA                 */
-
-  /*** VUD (Vendor Unique Device) Function ***/
-  /*** Interface descriptor ***/
-  USB_INTERFACE_DESCSIZE, /* bLength               */
-  USB_INTERFACE_DESCRIPTOR,/* bDescriptorType      */
-  VUD_INTERFACE_NO,       /* bInterfaceNumber      */
-  0,                      /* bAlternateSetting     */
-  VUD_NUM_EP_USED,        /* bNumEndpoints         */
-  0xFF,                   /* bInterfaceClass       */
-  0,                      /* bInterfaceSubClass    */
-  0,                      /* bInterfaceProtocol    */
-  0,                      /* iInterface            */
 
   /*** CDC Function                                                 ***/
   /*** IAD (Interface Association Descriptor) for the CDC function  ***/
@@ -195,6 +183,5 @@ const void * const USBDESC_strings[] =
 const uint8_t USBDESC_bufferingMultiplier[ NUM_EP_USED + 1 ] =
 {
   1,        /* Common Control endpoint.           */
-  2, 2,     /* MSD bulk endpoints.                */
   1, 2, 2   /* CDC interrupt and bulk endpoints.  */
 };
