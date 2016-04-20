@@ -14,9 +14,7 @@ uniq = $(strip $(if $1,$(firstword $1) \
        $(call uniq,$(filter-out $(firstword $1),$1))))
 
 DEVICE = EFM32LG990F256
-PROJECTNAME = comsbase
-SDKROOT= /Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
-CM3LIB= ../../../../cm3lib
+PROJECTNAME = usbdcomposite
 
 OBJ_DIR = build
 EXE_DIR = exe
@@ -29,7 +27,7 @@ LST_DIR = lst
 
 # Change path to the tools according to your system configuration
 # DO NOT add trailing whitespace chars, they do matter !
-WINDOWSCS  ?= GNU Tools ARM Embedded\4.8 2013q4
+WINDOWSCS  ?= GNU Tools ARM Embedded\4.9 2015q1
 LINUXCS    ?= ~/gcc-arm-none-eabi-4_8-2014q3
 
 RMDIRS     := rm -rf
@@ -97,68 +95,78 @@ DEPFLAGS = -MMD -MP -MF $(@:.o=.d)
 # Add -Wa,-ahld=$(LST_DIR)/$(@F:.o=.lst) to CFLAGS to produce assembly list files
 #
 override CFLAGS += -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m3 -mthumb \
--ffunction-sections -fdata-sections -fomit-frame-pointer \
--DDEBUG_EFM  $(DEPFLAGS)
+-mfix-cortex-m3-ldrd -ffunction-sections \
+-fdata-sections -fomit-frame-pointer -DDEBUG_EFM_USER  \
+$(DEPFLAGS)
 
-override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m3 -mthumb -DDEBUG_EFM 
+override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m3 -mthumb -DDEBUG_EFM_USER 
+
+SDK=/Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
+
 
 #
 # NOTE: The -Wl,--gc-sections flag may interfere with debugging using gdb.
 #
 override LDFLAGS += -Xlinker -Map=$(LST_DIR)/$(PROJECTNAME).map -mcpu=cortex-m3 \
--mthumb -Tefm32lg.ld  \
---specs=nano.specs -Wl,--gc-sections
+-mthumb -T$(SDK)/Device/SiliconLabs/EFM32LG/Source/GCC/efm32lg.ld \
+ -Wl,--gc-sections 
 
-LIBS = -Wl,--start-group -lgcc -lc_s -lnosys   -Wl,--end-group
+LIBS = -Wl,--start-group -lgcc -lc -lnosys   -Wl,--end-group
+
 
 INCLUDEPATHS += \
 -I. \
--I$(CM3LIB)/ \
--I$(SDKROOT)/CMSIS/Include \
--I$(SDKROOT)/Device/SiliconLabs/EFM32LG/Include \
--I$(SDKROOT)/emlib/inc \
--I$(SDKROOT)/usb/inc \
--I$(SDKROOT)/kits/common/bsp \
--I$(SDKROOT)/kits/common/drivers \
--I$(SDKROOT)/kits/EFM32LG_STK3600/config \
--I$(SDKROOT)/config 
-
+-I.. \
+-I$(SDK)/CMSIS/Include \
+-I$(SDK)/Device/SiliconLabs/EFM32LG/Include \
+-I$(SDK)/emlib/inc \
+-I$(SDK)/usb/inc \
+-I$(SDK)/kits/common/drivers \
+-I$(SDK)/kits/common/bsp \
+-I$(SDK)/kits/EFM32LG_STK3600/config
 
 ####################################################################
 # Files                                                            #
 ####################################################################
 
-C_SRC +=  \
-$(SDKROOT)/Device/SiliconLabs/EFM32LG/Source/system_efm32lg.c \
-$(SDKROOT)/kits/common/bsp/bsp_stk_leds.c \
-$(SDKROOT)/kits/common/bsp/bsp_trace.c \
-$(SDKROOT)/kits/common/drivers/segmentlcd.c \
-$(SDKROOT)/kits/common/drivers/cdc.c \
-$(SDKROOT)/kits/common/drivers/msdd.c \
-$(SDKROOT)/kits/common/drivers/dmactrl.c \
-$(SDKROOT)/emlib/src/em_assert.c \
-$(SDKROOT)/emlib/src/em_cmu.c \
-$(SDKROOT)/emlib/src/em_int.c \
-$(SDKROOT)/emlib/src/em_emu.c \
-$(SDKROOT)/emlib/src/em_dma.c \
-$(SDKROOT)/emlib/src/em_rtc.c \
-$(SDKROOT)/emlib/src/em_gpio.c \
-$(SDKROOT)/emlib/src/em_leuart.c \
-$(SDKROOT)/emlib/src/em_timer.c \
-$(SDKROOT)/emlib/src/em_lcd.c \
-$(SDKROOT)/emlib/src/em_msc.c \
-$(SDKROOT)/emlib/src/em_usart.c \
-$(SDKROOT)/usb/src/em_usbdep.c \
-$(SDKROOT)/usb/src/em_usbd.c \
-$(SDKROOT)/usb/src/em_usbtimer.c \
-$(SDKROOT)/usb/src/em_usbhal.c \
-descriptors.c main.c msddmedia.c vud.c
 
-# $(CM3LIB)/bresenham.c \
+C_SRC +=  \
+$(SDK)/kits/common/bsp/bsp_bcc.c \
+$(SDK)/kits/common/bsp/bsp_stk.c \
+$(SDK)/kits/common/bsp/bsp_stk_leds.c \
+$(SDK)/kits/common/bsp/bsp_trace.c \
+$(SDK)/Device/SiliconLabs/EFM32LG/Source/system_efm32lg.c \
+$(SDK)/emlib/src/em_assert.c \
+$(SDK)/emlib/src/em_cmu.c \
+$(SDK)/emlib/src/em_dma.c \
+$(SDK)/emlib/src/em_ebi.c \
+$(SDK)/emlib/src/em_emu.c \
+$(SDK)/emlib/src/em_gpio.c \
+$(SDK)/emlib/src/em_int.c \
+$(SDK)/emlib/src/em_lcd.c \
+$(SDK)/emlib/src/em_msc.c \
+$(SDK)/emlib/src/em_system.c \
+$(SDK)/emlib/src/em_timer.c \
+$(SDK)/emlib/src/em_usart.c \
+$(SDK)/usb/src/em_usbd.c \
+$(SDK)/usb/src/em_usbdch9.c \
+$(SDK)/usb/src/em_usbhal.c \
+$(SDK)/usb/src/em_usbdep.c \
+$(SDK)/usb/src/em_usbdint.c \
+$(SDK)/usb/src/em_usbtimer.c \
+./main.c \
+./descriptors.c \
+./vud.c \
+./msddmedia.c \
+$(SDK)/kits/common/drivers/cdc.c \
+$(SDK)/kits/common/drivers/msdd.c \
+$(SDK)/kits/common/drivers/dmactrl.c \
+$(SDK)/kits/common/drivers/segmentlcd.c
 
 s_SRC += 
 
-S_SRC += $(SDKROOT)/Device/SiliconLabs/EFM32LG/Source/GCC/startup_efm32lg.S  
+S_SRC +=  \
+$(SDK)/Device/SiliconLabs/EFM32LG/Source/GCC/startup_efm32lg.S
 
 ####################################################################
 # Rules                                                            #
@@ -210,11 +218,11 @@ $(EXE_DIR)/$(PROJECTNAME).out: $(OBJS)
 
 # Create binary file
 $(EXE_DIR)/$(PROJECTNAME).bin: $(EXE_DIR)/$(PROJECTNAME).out
-	@echo "Creating binary files"
-	$(OBJCOPY) -O binary $(EXE_DIR)/$(PROJECTNAME).out $(EXE_DIR)/$(PROJECTNAME).bin
+	@echo "Creating binary file"
 	$(OBJCOPY) -O ihex $(EXE_DIR)/$(PROJECTNAME).out $(EXE_DIR)/$(PROJECTNAME).hex
+#	$(OBJCOPY) -O binary $(EXE_DIR)/$(PROJECTNAME).out $(EXE_DIR)/$(PROJECTNAME).bin
 # Uncomment next line to produce assembly listing of entire program
-#	$(DUMP) -h -S -C $(EXE_DIR)/$(PROJECTNAME).out>$(LST_DIR)/$(PROJECTNAME)out.lst
+	$(DUMP) -h -S -C $(EXE_DIR)/$(PROJECTNAME).out>$(LST_DIR)/$(PROJECTNAME)out.lst
 
 clean:
 ifeq ($(filter $(MAKECMDGOALS),all debug release),)
