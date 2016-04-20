@@ -158,7 +158,7 @@ $(SDK)/usb/src/em_usbtimer.c \
 ./descriptors.c \
 ./vud.c \
 ./msddmedia.c \
-$(SDK)/kits/common/drivers/cdc.c \
+./cdc.c \
 $(SDK)/kits/common/drivers/msdd.c \
 $(SDK)/kits/common/drivers/dmactrl.c \
 $(SDK)/kits/common/drivers/segmentlcd.c
