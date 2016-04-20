@@ -102,7 +102,7 @@ $(DEPFLAGS)
 override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m3 -mthumb -DDEBUG_EFM_USER 
 
 SDK=/Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
-
+CM3LIB=../../../cm3lib
 
 #
 # NOTE: The -Wl,--gc-sections flag may interfere with debugging using gdb.
@@ -117,6 +117,7 @@ LIBS = -Wl,--start-group -lgcc -lc -lnosys   -Wl,--end-group
 INCLUDEPATHS += \
 -I. \
 -I.. \
+-I$(CM3LIB) \
 -I$(SDK)/CMSIS/Include \
 -I$(SDK)/Device/SiliconLabs/EFM32LG/Include \
 -I$(SDK)/emlib/inc \
@@ -161,7 +162,8 @@ $(SDK)/usb/src/em_usbtimer.c \
 ./faux-cdc.c \
 $(SDK)/kits/common/drivers/msdd.c \
 $(SDK)/kits/common/drivers/dmactrl.c \
-$(SDK)/kits/common/drivers/segmentlcd.c
+$(SDK)/kits/common/drivers/segmentlcd.c \
+$(CM3LIB)/ringbuffer.c
 
 s_SRC += 
 

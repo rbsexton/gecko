@@ -12,6 +12,8 @@
  * any purpose, you must agree to the terms of that agreement.
  *
  ******************************************************************************/
+#include <stdint.h>
+
 #include "em_device.h"
 #include "em_common.h"
 #include "em_cmu.h"
@@ -22,6 +24,12 @@
 #include "bsp.h"
 #include "dmactrl.h"
 #include "cdc.h"
+
+#include "ringbuffer.h"
+
+RINGBUF rb;
+uint8_t rb_storage[32];
+
 
 /**************************************************************************//**
  * @addtogroup Cdc
@@ -167,6 +175,7 @@ void CDC_Init( void )
 {
   SerialPortInit();
   DmaSetup();
+  ringbuffer_init(&rb,rb_storage,32);
 }
 
 /**************************************************************************//**
@@ -310,7 +319,7 @@ static int UsbDataReceived(USB_Status_TypeDef status,
 
   if ((status == USB_STATUS_OK) && (xferred > 0))
   {
-    usbRxIndex ^= 1;
+    usbRxIndex ^= 1; // Switch to the other one.
 
     if (!dmaTxActive)
     {
