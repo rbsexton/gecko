@@ -257,8 +257,6 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     /* We have been de-configured, stop CDC functionality. */
     USBTIMER_Stop(CDC_TIMER_ID);
     /* Stop DMA channels. */
-    DMA->CHENC = ( 1 << CDC_UART_TX_DMA_CHANNEL ) |
-                 ( 1 << CDC_UART_RX_DMA_CHANNEL );
   }
 
   else if (newState == USBD_STATE_SUSPENDED)
@@ -266,9 +264,6 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     /* We have been suspended, stop CDC functionality. */
     /* Reduce current consumption to below 2.5 mA.     */
     USBTIMER_Stop(CDC_TIMER_ID);
-    /* Stop DMA channels. */
-    DMA->CHENC = ( 1 << CDC_UART_TX_DMA_CHANNEL ) |
-                 ( 1 << CDC_UART_RX_DMA_CHANNEL );
   }
 }
 
@@ -311,6 +306,10 @@ static int UsbDataReceived(USB_Status_TypeDef status,
     /* Start a new USB receive transfer. */
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceived);
+
+	int leds = BSP_LedsGet();
+	leds++;
+	BSP_LedsSet(leds);
   }
   return USB_STATUS_OK;
 }

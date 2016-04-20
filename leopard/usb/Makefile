@@ -158,12 +158,13 @@ $(SDK)/usb/src/em_usbtimer.c \
 ./main.c \
 ./descriptors.c \
 ./vud.c \
-./msddmedia.c \
 ./faux-cdc.c \
-$(SDK)/kits/common/drivers/msdd.c \
 $(SDK)/kits/common/drivers/dmactrl.c \
 $(SDK)/kits/common/drivers/segmentlcd.c \
 $(CM3LIB)/ringbuffer.c
+
+# $(SDK)/kits/common/drivers/msdd.c \
+# ./msddmedia.c \
 
 s_SRC += 
 

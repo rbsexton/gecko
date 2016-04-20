@@ -76,35 +76,6 @@ const uint8_t USBDESC_configDesc[] __attribute__ ((aligned(4)))=
   0,                      /* bInterfaceProtocol    */
   0,                      /* iInterface            */
 
-  /*** MSD Function         ***/
-  /*** Interface descriptor ***/
-  USB_INTERFACE_DESCSIZE, /* bLength               */
-  USB_INTERFACE_DESCRIPTOR,/* bDescriptorType      */
-  MSD_INTERFACE_NO,       /* bInterfaceNumber      */
-  0,                      /* bAlternateSetting     */
-  MSD_NUM_EP_USED,        /* bNumEndpoints         */
-  USB_CLASS_MSD,          /* bInterfaceClass       */
-  USB_CLASS_MSD_SCSI_CMDSET, /* bInterfaceSubClass */
-  USB_CLASS_MSD_BOT_TRANSPORT,/* bInterfaceProtocol*/
-  0,                      /* iInterface            */
-
-  /*** Endpoint descriptors ***/
-  USB_ENDPOINT_DESCSIZE,  /* bLength               */
-  USB_ENDPOINT_DESCRIPTOR,/* bDescriptorType       */
-  MSD_BULK_OUT,           /* bEndpointAddress (OUT)*/
-  USB_EPTYPE_BULK,        /* bmAttributes          */
-  USB_FS_BULK_EP_MAXSIZE, /* wMaxPacketSize (LSB)  */
-  0,                      /* wMaxPacketSize (MSB)  */
-  0,                      /* bInterval             */
-
-  USB_ENDPOINT_DESCSIZE,  /* bLength               */
-  USB_ENDPOINT_DESCRIPTOR,/* bDescriptorType       */
-  MSD_BULK_IN,            /* bEndpointAddress (IN) */
-  USB_EPTYPE_BULK,        /* bmAttributes          */
-  USB_FS_BULK_EP_MAXSIZE, /* wMaxPacketSize (LSB)  */
-  0,                      /* wMaxPacketSize (MSB)  */
-  0,                      /* bInterval             */
-
   /*** CDC Function                                                 ***/
   /*** IAD (Interface Association Descriptor) for the CDC function  ***/
   USB_INTERFACE_ASSOCIATION_DESCSIZE, /* bLength: Interface Descriptor size */

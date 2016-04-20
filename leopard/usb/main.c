@@ -23,7 +23,6 @@
 
 #include "em_usb.h"
 #include "msdd.h"
-#include "msddmedia.h"
 #include "vud.h"
 #include "cdc.h"
 #include "descriptors.h"
@@ -77,16 +76,8 @@ int main( void )
   /* Initialize LED driver */
   BSP_LedsInit();
 
-  /* Initialize the Mass Storage Media. */
-  if ( !MSDDMEDIA_Init() )
-  {
-    EFM_ASSERT( false );
-    for( ;; ){}
-  }
-
   VUD_Init();                   /* Initialize the vendor unique device. */
   CDC_Init();                   /* Initialize the communication class device. */
-  MSDD_Init( -1, 0 );           /* Initialize the Mass Storage Device.  */
 
   /* Initialize and start USB device stack. */
   USBD_Init(&usbInitStruct);
@@ -101,7 +92,7 @@ int main( void )
 
   for (;;)
   {
-    MSDD_Handler();             /* Serve the MSD device. */
+	// MSDD_Handler();             /* Serve the MSD device. */
   }
 }
 
@@ -120,13 +111,7 @@ int SetupCmd(const USB_Setup_TypeDef *setup)
   int retVal;
 
   /* Call SetupCmd handlers for all functions within the composite device. */
-
-  retVal = MSDD_SetupCmd( setup );
-
-  if ( retVal == USB_STATUS_REQ_UNHANDLED )
-  {
-    retVal = VUD_SetupCmd( setup );
-  }
+  retVal = VUD_SetupCmd( setup );
 
   if ( retVal == USB_STATUS_REQ_UNHANDLED )
   {
@@ -151,7 +136,5 @@ void StateChangeEvent( USBD_State_TypeDef oldState,
 {
   /* Call device StateChange event handlers for all relevant functions within
      the composite device. */
-
-  MSDD_StateChangeEvent( oldState, newState );
   CDC_StateChangeEvent(  oldState, newState );
 }
