@@ -165,8 +165,7 @@ $(CM3LIB)/ringbuffer.c
 
 s_SRC += 
 
-S_SRC +=  \
-$(SDK)/Device/SiliconLabs/EFM32LG/Source/GCC/startup_efm32lg.S
+S_SRC += startup_efm32lg.S
 
 ####################################################################
 # Rules                                                            #
