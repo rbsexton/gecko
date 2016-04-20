@@ -126,12 +126,9 @@ EFM32_PACK_END()
 
 static int  UsbDataReceived(USB_Status_TypeDef status, uint32_t xferred,
                             uint32_t remaining);
-static void DmaSetup(void);
 static int  LineCodingReceived(USB_Status_TypeDef status,
                                uint32_t xferred,
                                uint32_t remaining);
-static void SerialPortInit(void);
-static void UartRxTimeout(void);
 
 /*** Variables ***/
 
@@ -149,22 +146,12 @@ EFM32_PACK_END()
 
 STATIC_UBUF(usbRxBuffer0,  CDC_USB_RX_BUF_SIZ);   /* USB receive buffers.   */
 STATIC_UBUF(usbRxBuffer1,  CDC_USB_RX_BUF_SIZ);
-STATIC_UBUF(uartRxBuffer0, CDC_USB_TX_BUF_SIZ);   /* UART receive buffers.  */
-STATIC_UBUF(uartRxBuffer1, CDC_USB_TX_BUF_SIZ);
 
 static const uint8_t  *usbRxBuffer[  2 ] = { usbRxBuffer0, usbRxBuffer1 };
-static const uint8_t  *uartRxBuffer[ 2 ] = { uartRxBuffer0, uartRxBuffer1 };
 
-static int            usbRxIndex, usbBytesReceived;
-static int            uartRxIndex, uartRxCount;
-static int            LastUsbTxCnt;
+static int            usbRxIndex;
 
-static bool           dmaRxCompleted;
 static bool           usbRxActive, dmaTxActive;
-static bool           usbTxActive, dmaRxActive;
-
-static DMA_CB_TypeDef DmaTxCallBack;    /** DMA callback structures. */
-static DMA_CB_TypeDef DmaRxCallBack;
 
 /** @endcond */
 
@@ -173,8 +160,6 @@ static DMA_CB_TypeDef DmaRxCallBack;
  *****************************************************************************/
 void CDC_Init( void )
 {
-  SerialPortInit();
-  DmaSetup();
   ringbuffer_init(&rb,rb_storage,32);
 }
 
@@ -264,18 +249,6 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceived);
 
-    /* Start receiving data on UART. */
-    uartRxIndex    = 0;
-    LastUsbTxCnt   = 0;
-    uartRxCount    = 0;
-    dmaRxActive    = true;
-    usbTxActive    = false;
-    dmaRxCompleted = true;
-    DMA_ActivateBasic(CDC_UART_RX_DMA_CHANNEL, true, false,
-                      (void *) uartRxBuffer[ uartRxIndex ],
-                      (void *) &(CDC_UART->RXDATA),
-                      CDC_USB_TX_BUF_SIZ - 1);
-    USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
   }
 
   else if ((oldState == USBD_STATE_CONFIGURED) &&
@@ -342,46 +315,6 @@ static int UsbDataReceived(USB_Status_TypeDef status,
   return USB_STATUS_OK;
 }
 
-/**************************************************************************//**
- * @brief Callback function called whenever a UART transmit DMA has completed.
- *
- * @param[in] channel DMA channel number.
- * @param[in] primary True if this is the primary DMA channel.
- * @param[in] user    Optional user supplied parameter.
- *****************************************************************************/
-static void DmaTxComplete(unsigned int channel, bool primary, void *user)
-{
-  (void) channel;              /* Unused parameter. */
-  (void) primary;              /* Unused parameter. */
-  (void) user;                 /* Unused parameter. */
-
-  /*
-   * As nested interrupts may occur and we rely on variables usbRxActive
-   * and dmaTxActive etc, we must handle this function as a critical region.
-   */
-  INT_Disable();
-
-  if (!usbRxActive)
-  {
-    /* usbRxActive = false means that an USB receive packet has been received.*/
-    DMA_ActivateBasic(CDC_UART_TX_DMA_CHANNEL, true, false,
-                      (void *) &(CDC_UART->TXDATA),
-                      (void *) usbRxBuffer[ usbRxIndex ^ 1 ],
-                      usbBytesReceived - 1);
-
-    /* Start a new USB receive transfer. */
-    usbRxActive = true;
-    USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
-              CDC_USB_RX_BUF_SIZ, UsbDataReceived);
-  }
-  else
-  {
-    /* The USB receive complete callback function will start a new DMA. */
-    dmaTxActive = false;
-  }
-
-  INT_Enable();
-}
 
 /**************************************************************************//**
  * @brief Callback function called whenever a packet with data has been
@@ -405,121 +338,6 @@ static int UsbDataTransmitted(USB_Status_TypeDef status,
       // USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
     }
   return USB_STATUS_OK;
-}
-
-/**************************************************************************//**
- * @brief Callback function called whenever a UART receive DMA has completed.
- *
- * @param[in] channel DMA channel number.
- * @param[in] primary True if this is the primary DMA channel.
- * @param[in] user    Optional user supplied parameter.
- *****************************************************************************/
-static void DmaRxComplete(unsigned int channel, bool primary, void *user)
-{
-  (void) channel;              /* Unused parameter. */
-  (void) primary;              /* Unused parameter. */
-  (void) user;                 /* Unused parameter. */
-
-  /*
-   * As nested interrupts may occur and we rely on variables usbTxActive
-   * and dmaRxActive etc, we must handle this function as a critical region.
-   */
-  INT_Disable();
-
-  uartRxIndex ^= 1;
-
-  if (dmaRxCompleted)
-  {
-    uartRxCount = CDC_USB_TX_BUF_SIZ;
-  }
-  else
-  {
-    uartRxCount = CDC_USB_TX_BUF_SIZ - 1 -
-                  ((dmaControlBlock[ 1 ].CTRL & _DMA_CTRL_N_MINUS_1_MASK)
-                   >> _DMA_CTRL_N_MINUS_1_SHIFT);
-  }
-
-  if (!usbTxActive)
-  {
-    /* usbTxActive = false means that a new USB packet can be transferred. */
-    usbTxActive = true;
-    USBD_Write(CDC_EP_DATA_IN, (void*) uartRxBuffer[ uartRxIndex ^ 1],
-               uartRxCount, UsbDataTransmitted);
-    LastUsbTxCnt = uartRxCount;
-
-    /* Start a new UART receive DMA. */
-    dmaRxCompleted = true;
-    DMA_ActivateBasic(CDC_UART_RX_DMA_CHANNEL, true, false,
-                      (void *) uartRxBuffer[ uartRxIndex ],
-                      (void *) &(CDC_UART->RXDATA),
-                      CDC_USB_TX_BUF_SIZ - 1);
-    uartRxCount = 0;
-    USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
-  }
-  else
-  {
-    /* The USB transmit complete callback function will start a new DMA. */
-    dmaRxActive = false;
-    USBTIMER_Stop(CDC_TIMER_ID);
-  }
-
-  INT_Enable();
-}
-
-/**************************************************************************//**
- * @brief
- *   Called each time UART Rx timeout period elapses.
- *   Implements UART Rx rate monitoring, i.e. we must behave differently when
- *   UART Rx rate is slow e.g. when a person is typing characters, and when UART
- *   Rx rate is maximum.
- *****************************************************************************/
-static void UartRxTimeout(void)
-{
-  int      cnt;
-  uint32_t dmaCtrl;
-
-  dmaCtrl = dmaControlBlock[ 1 ].CTRL;
-
-  /* Has the DMA just completed ? */
-  if ((dmaCtrl & _DMA_CTRL_CYCLE_CTRL_MASK) == DMA_CTRL_CYCLE_CTRL_INVALID)
-  {
-    return;
-  }
-
-  cnt = CDC_USB_TX_BUF_SIZ - 1 -
-        ((dmaCtrl & _DMA_CTRL_N_MINUS_1_MASK) >> _DMA_CTRL_N_MINUS_1_SHIFT);
-
-  if ((cnt == 0) && (LastUsbTxCnt == CDC_BULK_EP_SIZE))
-  {
-    /*
-     * No activity on UART Rx, send a ZERO length USB package if last USB
-     * USB package sent was CDC_BULK_EP_SIZE (max. EP size) long.
-     */
-    /* Stop Rx DMA channel. */
-    DMA->CHENC     = 1 << CDC_UART_RX_DMA_CHANNEL;
-    dmaRxCompleted = false;
-    /* Call DMA completion callback. */
-    DmaRxComplete(CDC_UART_RX_DMA_CHANNEL, true, NULL);
-    return;
-  }
-
-  if ((cnt > 0) && (cnt == uartRxCount))
-  {
-    /*
-     * There is curently no activity on UART Rx but some chars have been
-     * received. Stop DMA and transmit the chars we have got so far on USB.
-     */
-    /* Stop Rx DMA channel. */
-    DMA->CHENC     = 1 << CDC_UART_RX_DMA_CHANNEL;
-    dmaRxCompleted = false;
-    /* Call DMA completion callback. */
-    DmaRxComplete(CDC_UART_RX_DMA_CHANNEL, true, NULL);
-    return;
-  }
-
-  /* Restart timer to continue monitoring. */
-  uartRxCount = cnt;
-  USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
 }
 
 /**************************************************************************//**
@@ -602,105 +420,6 @@ static int LineCodingReceived(USB_Status_TypeDef status,
     return USB_STATUS_OK;
   }
   return USB_STATUS_REQ_ERR;
-}
-
-/**************************************************************************//**
- * @brief Initialize the DMA peripheral.
- *****************************************************************************/
-static void DmaSetup(void)
-{
-  /* DMA configuration structs. */
-  DMA_Init_TypeDef       dmaInit;
-  DMA_CfgChannel_TypeDef chnlCfgTx, chnlCfgRx;
-  DMA_CfgDescr_TypeDef   descrCfgTx, descrCfgRx;
-
-  /* Initialize the DMA. */
-  dmaInit.hprot        = 0;
-  dmaInit.controlBlock = dmaControlBlock;
-  DMA_Init(&dmaInit);
-
-  /*---------- Configure DMA channel for UART Tx. ----------*/
-
-  /* Setup the interrupt callback routine */
-  DmaTxCallBack.cbFunc  = DmaTxComplete;
-  DmaTxCallBack.userPtr = NULL;
-
-  /* Setup the channel */
-  chnlCfgTx.highPri   = false;    /* Can't use with peripherals. */
-  chnlCfgTx.enableInt = true;     /* Interrupt needed when buffers are used. */
-  chnlCfgTx.select    = CDC_TX_DMA_SIGNAL;
-  chnlCfgTx.cb        = &DmaTxCallBack;
-  DMA_CfgChannel(CDC_UART_TX_DMA_CHANNEL, &chnlCfgTx);
-
-  /* Setup channel descriptor. */
-  /* Destination is UART Tx data register and doesn't move. */
-  descrCfgTx.dstInc = dmaDataIncNone;
-  descrCfgTx.srcInc = dmaDataInc1;
-  descrCfgTx.size   = dmaDataSize1;
-
-  /* We have time to arbitrate again for each sample. */
-  descrCfgTx.arbRate = dmaArbitrate1;
-  descrCfgTx.hprot   = 0;
-
-  /* Configure primary descriptor. */
-  DMA_CfgDescr(CDC_UART_TX_DMA_CHANNEL, true, &descrCfgTx);
-
-  /*---------- Configure DMA channel for UART Rx. ----------*/
-
-  /* Setup the interrupt callback routine. */
-  DmaRxCallBack.cbFunc  = DmaRxComplete;
-  DmaRxCallBack.userPtr = NULL;
-
-  /* Setup the channel */
-  chnlCfgRx.highPri   = false;    /* Can't use with peripherals. */
-  chnlCfgRx.enableInt = true;     /* Interrupt needed when buffers are used. */
-  chnlCfgRx.select    = CDC_RX_DMA_SIGNAL;
-  chnlCfgRx.cb        = &DmaRxCallBack;
-  DMA_CfgChannel(CDC_UART_RX_DMA_CHANNEL, &chnlCfgRx);
-
-  /* Setup channel descriptor. */
-  /* Source is UART Rx data register and doesn't move. */
-  descrCfgRx.dstInc = dmaDataInc1;
-  descrCfgRx.srcInc = dmaDataIncNone;
-  descrCfgRx.size   = dmaDataSize1;
-
-  /* We have time to arbitrate again for each sample. */
-  descrCfgRx.arbRate = dmaArbitrate1;
-  descrCfgRx.hprot   = 0;
-
-  /* Configure primary descriptor. */
-  DMA_CfgDescr(CDC_UART_RX_DMA_CHANNEL, true, &descrCfgRx);
-}
-
-/**************************************************************************//**
- * @brief Initialize the UART peripheral.
- *****************************************************************************/
-static void SerialPortInit(void)
-{
-  USART_InitAsync_TypeDef init  = USART_INITASYNC_DEFAULT;
-
-  /* Configure GPIO pins. */
-  CMU_ClockEnable(cmuClock_GPIO, true);
-  /* To avoid false start, configure output as high. */
-  GPIO_PinModeSet(CDC_UART_TX_PORT, CDC_UART_TX_PIN, gpioModePushPull, 1);
-  GPIO_PinModeSet(CDC_UART_RX_PORT, CDC_UART_RX_PIN, gpioModeInput, 0);
-
-  /* Enable DK mainboard RS232/UART switch. */
-  CDC_ENABLE_DK_UART_SWITCH();
-
-  /* Enable peripheral clocks. */
-  CMU_ClockEnable(cmuClock_HFPER, true);
-  CMU_ClockEnable(CDC_UART_CLOCK, true);
-
-  /* Configure UART for basic async operation. */
-  init.enable = usartDisable;
-  USART_InitAsync(CDC_UART, &init);
-
-  /* Enable Tx/Rx pins and set correct UART location. */
-  CDC_UART->ROUTE = CDC_UART_ROUTE;
-
-  /* Finally enable it */
-  USART_Enable(CDC_UART, usartEnable);
 }
 
 /** @endcond */
