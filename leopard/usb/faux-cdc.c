@@ -124,11 +124,36 @@ EFM32_PACK_END()
 
 /*** Function prototypes. ***/
 
-static int  UsbDataReceived(USB_Status_TypeDef status, uint32_t xferred,
-                            uint32_t remaining);
 static int  LineCodingReceived(USB_Status_TypeDef status,
                                uint32_t xferred,
                                uint32_t remaining);
+
+static int UsbDataReceivedMeta(USB_Status_TypeDef status,
+	uint32_t xferred, uint32_t remaining, int channel);
+static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
+	uint32_t xferred, uint32_t remaining, int channel);
+
+static int UsbDataReceivedU0(USB_Status_TypeDef status,
+ 		uint32_t xferred, uint32_t remaining) {		
+	return(UsbDataReceivedMeta(status, xferred, remaining, 0));
+	}
+
+static int UsbDataTransmittedU0(USB_Status_TypeDef status,
+	uint32_t xferred, uint32_t remaining ) {
+		return(UsbDataTransmittedMeta(status,xferred,remaining,0));
+	}
+
+#if 0 
+static int UsbDataReceivedU1(USB_Status_TypeDef status,
+ 		uint32_t xferred, uint32_t remaining) {		
+	return(UsbDataReceivedMeta(status, xferred, remaining, 1));
+	}
+
+static int UsbDataTransmittedU1(USB_Status_TypeDef status,
+	uint32_t xferred, uint32_t remaining) {
+		return(UsbDataTransmittedMeta(status,xferred,remaining,1));
+	}
+#endif 
 
 /*** Variables ***/
 
@@ -247,7 +272,7 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     usbRxActive = true;
     dmaTxActive = false;
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
-              CDC_USB_RX_BUF_SIZ, UsbDataReceived);
+              CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
 
   }
 
@@ -269,10 +294,6 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 
-static int UsbDataTransmitted(USB_Status_TypeDef status,
-                            uint32_t xferred,
-							uint32_t remaining);
-
 /**************************************************************************//**
  * @brief Callback function called whenever a new packet with data is received
  *        on USB.
@@ -283,11 +304,12 @@ static int UsbDataTransmitted(USB_Status_TypeDef status,
  *
  * @return USB_STATUS_OK.
  *****************************************************************************/
-static int UsbDataReceived(USB_Status_TypeDef status,
+static int UsbDataReceivedMeta(USB_Status_TypeDef status,
                            uint32_t xferred,
-                           uint32_t remaining)
+                           uint32_t remaining, int channel)
 {
   (void) remaining;            /* Unused parameter. */
+  (void) channel;              /* Not used yet. */
 
   if ((status == USB_STATUS_OK) && (xferred > 0))
   {
@@ -300,12 +322,12 @@ static int UsbDataReceived(USB_Status_TypeDef status,
 	//}
 	
 	USBD_Write(CDC_EP_DATA_IN, (void*) usbRxBuffer[ usbRxIndex ],
-               xferred, UsbDataTransmitted);
+               xferred, UsbDataTransmittedU0);
     
     usbRxIndex ^= 1; // Switch to the other one.
     /* Start a new USB receive transfer. */
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
-              CDC_USB_RX_BUF_SIZ, UsbDataReceived);
+              CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
 
 	int leds = BSP_LedsGet();
 	leds++;
@@ -325,12 +347,14 @@ static int UsbDataReceived(USB_Status_TypeDef status,
  *
  * @return USB_STATUS_OK.
  *****************************************************************************/
-static int UsbDataTransmitted(USB_Status_TypeDef status,
+static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
                               uint32_t xferred,
-                              uint32_t remaining)
+                              uint32_t remaining,
+							  int channel)
 {
   (void) xferred;              /* Unused parameter. */
   (void) remaining;            /* Unused parameter. */
+  (void) channel;              /* As of yet parameter. */
 
   if (status == USB_STATUS_OK)
     {
