@@ -143,6 +143,8 @@ static int UsbDataTransmittedU0(USB_Status_TypeDef status,
 		return(UsbDataTransmittedMeta(status,xferred,remaining,0));
 	}
 
+static void RingbufferSweep(void);
+
 #if 0 
 static int UsbDataReceivedU1(USB_Status_TypeDef status,
  		uint32_t xferred, uint32_t remaining) {		
@@ -273,7 +275,7 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     dmaTxActive = false;
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
-
+	USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
   }
 
   else if ((oldState == USBD_STATE_CONFIGURED) &&
@@ -335,6 +337,23 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
   }
   return USB_STATUS_OK;
 }
+
+static int sweep_counter = 0;
+
+static void RingbufferSweep(void) { 
+
+	sweep_counter += 5;
+	
+	if ( sweep_counter > 1000) {
+		sweep_counter -= 1000;
+		int leds = BSP_LedsGet();
+		leds++;
+		BSP_LedsSet(leds);
+		}
+	// We have to re-call ourself.
+	USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
+	}
+
 
 
 /**************************************************************************//**
