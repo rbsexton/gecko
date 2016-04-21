@@ -26,6 +26,8 @@
 #include "cdc.h"
 #include "descriptors.h"
 
+#include "ringbuffer.h"
+
 /**************************************************************************//**
  *
  * This example shows how a Composite USB Device can be implemented.
@@ -59,6 +61,8 @@ const USBD_Init_TypeDef usbInitStruct =
 /**************************************************************************//**
  * @brief main - the entrypoint after reset.
  *****************************************************************************/
+
+extern RINGBUF rb;
 int main( void )
 {
   /* If first word of user data page is non-zero, enable eA Profiler trace */
@@ -88,8 +92,17 @@ int main( void )
   /* USBTIMER_DelayMs( 1000 );  */
   /* USBD_Connect();            */
 
+int count = 0;
+int c = 0;
   for (;;)
   {
+	count++;
+	if ( count > 1000000) {
+		count -= 1000000;
+		c++;
+		c %= 26;
+		ringbuffer_addchar(&rb,c + 'A');
+	}
 	// MSDD_Handler();             /* Serve the MSD device. */
   }
 }

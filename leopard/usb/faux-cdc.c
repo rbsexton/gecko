@@ -28,7 +28,9 @@
 #include "ringbuffer.h"
 
 RINGBUF rb;
-uint8_t rb_storage[32];
+
+#define RBPAYLOAD 32
+uint8_t rb_storage[RBPAYLOAD];
 
 
 /**************************************************************************//**
@@ -173,6 +175,7 @@ EFM32_PACK_END()
 
 STATIC_UBUF(usbRxBuffer0,  CDC_USB_RX_BUF_SIZ);   /* USB receive buffers.   */
 STATIC_UBUF(usbRxBuffer1,  CDC_USB_RX_BUF_SIZ);
+STATIC_UBUF(usbTxBuffer0,  CDC_USB_TX_BUF_SIZ);   /* We only need one. */
 
 static const uint8_t  *usbRxBuffer[  2 ] = { usbRxBuffer0, usbRxBuffer1 };
 
@@ -338,8 +341,19 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
   return USB_STATUS_OK;
 }
 
-static int sweep_counter = 0;
+static void SendRBtoHost() {
+	int i = 0;
+ 	while( ringbuffer_used(&rb) ) {
+		usbTxBuffer0[i++] = ringbuffer_getchar(&rb);
+		}
+	if ( i ) USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
+	// strcpy(usbTxBuffer0,"Foo");
+	// USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, 3, UsbDataTransmittedU0);
+	
+	
+	}
 
+static int sweep_counter = 0;
 static void RingbufferSweep(void) { 
 
 	sweep_counter += 5;
@@ -349,6 +363,7 @@ static void RingbufferSweep(void) {
 		int leds = BSP_LedsGet();
 		leds++;
 		BSP_LedsSet(leds);
+		SendRBtoHost();
 		}
 	// We have to re-call ourself.
 	USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
