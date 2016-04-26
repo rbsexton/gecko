@@ -101,7 +101,7 @@ int c = 0;
 		count -= 1000000;
 		c++;
 		c %= 26;
-		ringbuffer_addchar(&rb,c + 'A');
+		PutChar(0,c + 'A');
 	}
 	// MSDD_Handler();             /* Serve the MSD device. */
   }

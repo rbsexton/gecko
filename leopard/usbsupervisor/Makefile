@@ -1,4 +1,4 @@
-####################################################################
+###################################################################
 # Makefile                                                         #
 ####################################################################
 
@@ -19,6 +19,10 @@ PROJECTNAME = usbdcomposite
 OBJ_DIR = build
 EXE_DIR = exe
 LST_DIR = lst
+
+SDK=/Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
+CM3LIB=../../../cm3lib
+SAPI=../../../sockpuppet/sapi
 
 ####################################################################
 # Definitions of toolchain.                                        #
@@ -101,8 +105,6 @@ $(DEPFLAGS)
 
 override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m3 -mthumb -DDEBUG_EFM_USER 
 
-SDK=/Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
-CM3LIB=../../../cm3lib
 
 #
 # NOTE: The -Wl,--gc-sections flag may interfere with debugging using gdb.
@@ -160,12 +162,15 @@ $(SDK)/usb/src/em_usbtimer.c \
 ./faux-cdc.c \
 $(SDK)/kits/common/drivers/dmactrl.c \
 $(SDK)/kits/common/drivers/segmentlcd.c \
-$(CM3LIB)/ringbuffer.c
+$(CM3LIB)/ringbuffer.c \
+./systemcalls.c 
 
 
 s_SRC += 
 
-S_SRC += startup_efm32lg.S
+S_SRC += ${SAPI}/svchandler.S \
+	 startup_efm32lg.S \
+	testsyscall.S
 
 ####################################################################
 # Rules                                                            #
