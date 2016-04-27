@@ -163,6 +163,7 @@ $(SDK)/usb/src/em_usbtimer.c \
 $(SDK)/kits/common/drivers/dmactrl.c \
 $(SDK)/kits/common/drivers/segmentlcd.c \
 $(CM3LIB)/ringbuffer.c \
+$(SAPI)/pendsv-launcher.c \
 ./systemcalls.c 
 
 

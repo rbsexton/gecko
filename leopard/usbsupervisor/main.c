@@ -84,6 +84,9 @@ int main( void )
   /* Initialize and start USB device stack. */
   USBD_Init(&usbInitStruct);
 
+
+   NVIC_EnableIRQ(PendSV_IRQn);	
+
   /*
    * When using a debugger it is practical to uncomment the following three
    * lines to force host to re-enumerate the device.
