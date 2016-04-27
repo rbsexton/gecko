@@ -19,10 +19,8 @@ extern RINGBUF rb;
 /// @R0 - Stream Number
 /// @R1 - The Character in question.
 /// @returns in R0 - Result - 0 for success. -1 for highwater, -2 for fail
-void __SAPI_02_PutChar(unsigned long frame[]) {
-	unsigned long stream = frame[0];
-	uint8_t c = (unsigned long) frame[1];
-	int ret; 
+int32_t __SAPI_02_PutChar(unsigned long stream, uint8_t c) {
+	int ret;
 	switch ( stream ) {
 		case 10:
 		case 11:
@@ -31,7 +29,7 @@ void __SAPI_02_PutChar(unsigned long frame[]) {
 		default:
 			ret = ringbuffer_addchar(&rb,c);
 		}
-	frame[0] = ret;
+	return(ret);
 	}
 
 uint32_t __SAPI_03_GetChar(unsigned long stream) {
