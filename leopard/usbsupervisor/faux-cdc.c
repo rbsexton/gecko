@@ -181,8 +181,9 @@ static const uint8_t  *usbRxBuffer[  2 ] = { usbRxBuffer0, usbRxBuffer1 };
 
 static int            usbRxIndex;
 
-static bool           usbRxActive, dmaTxActive;
+static bool           usbRxActive;
 
+static bool clientAttached;
 /** @endcond */
 
 /**************************************************************************//**
@@ -226,6 +227,7 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
       break;
 
     case USB_CDC_SETLINECODING:
+	  // Happens on connect.  Apparently platform dependendant.
       /********************/
       if ( ( setup->wValue    == 0                     ) &&
            ( setup->wIndex    == CDC_CTRL_INTERFACE_NO ) && /* Interface no. */
@@ -236,9 +238,11 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
         USBD_Read(0, (void*) &cdcLineCoding, 7, LineCodingReceived);
         retVal = USB_STATUS_OK;
       }
-      break;
+      BSP_LedsSet(BSP_LedsGet() | 0x2 );
+	  break;
 
     case USB_CDC_SETCTRLLINESTATE:
+	  // Apparently this will trigger on disconnect.
       /********************/
       if ( ( setup->wIndex  == CDC_CTRL_INTERFACE_NO ) &&   /* Interface no.  */
            ( setup->wLength == 0                     )    ) /* No data.       */
@@ -246,6 +250,7 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
         /* Do nothing ( Non compliant behaviour !! ) */
         retVal = USB_STATUS_OK;
       }
+	  BSP_LedsSet(0);
       break;
     }
   }
@@ -275,7 +280,6 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     /* Start receiving data from USB host. */
     usbRxIndex  = 0;
     usbRxActive = true;
-    dmaTxActive = false;
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
 	USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
@@ -334,9 +338,9 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
 
-	int leds = BSP_LedsGet();
-	leds++;
-	BSP_LedsSet(leds);
+	// int leds = BSP_LedsGet();
+	// leds++;
+	// BSP_LedsSet(leds);
   }
   return USB_STATUS_OK;
 }
@@ -360,9 +364,9 @@ static void RingbufferSweep(void) {
 	
 	if ( sweep_counter > 1000) {
 		sweep_counter -= 1000;
-		int leds = BSP_LedsGet();
-		leds++;
-		BSP_LedsSet(leds);
+		// int leds = BSP_LedsGet();
+		// leds++;
+		// BSP_LedsSet(leds);
 		SendRBtoHost();
 		}
 	// We have to re-call ourself.
