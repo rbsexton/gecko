@@ -80,6 +80,7 @@ END-CODE
 
 CODE TICKS  \ -- n 
 \ *G The current value of the millisecond ticker.
+    mov r0, # 0 \ We want the actual value.
 	svc # SAPI_VEC_15_GetTimeMS
 	str tos, [ psp, # -4 ] !
 	mov tos, r0
