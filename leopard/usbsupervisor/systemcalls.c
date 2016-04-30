@@ -32,14 +32,16 @@ int32_t __SAPI_02_PutChar(unsigned long stream, uint8_t c) {
 	return(ret);
 	}
 
-uint32_t __SAPI_03_GetChar(unsigned long stream) {
+int32_t __SAPI_03_GetChar(unsigned long stream) {
 	switch ( stream ) {
 		case 10:
 		case 11:
 			// return(USBGetChar(stream-1));
+			return(-1);
+			
 			break;
 		default:
-			return(0);
+			return(-1);
 		}
 	}
 
@@ -48,6 +50,7 @@ uint32_t __SAPI_04_GetCharAvail(unsigned long stream) {
 		case 10:
 		case 11:
 			// return(USBGetCharAvail(stream-1));
+			return(0);
 			break;
 		default:
 			return(0);
@@ -58,16 +61,18 @@ uint32_t __SAPI_05_PutString(unsigned long stream, uint8_t *c, int len) {
 	return(len);
 }
 
+// Stubbed out.
 uint32_t __SAPI_06_EOL(unsigned long stream) {
-	return(0);
+	return(stream);
 }
 
+// Stubbed out
 uint32_t __SAPI_14_PetWatchdog(unsigned long machineticks) {
-	return(0);
+	return(machineticks);
 }
 
-uint32_t __SAPI_15_GetTimeMS(bool thirtytwo) {
-	if (thirtytwo) 	return(0);
+uint32_t __SAPI_15_GetTimeMS(bool address) {
+	if (address) 	return(0);
 	else return(1);
 }
 
