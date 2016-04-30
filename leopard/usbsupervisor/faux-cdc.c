@@ -239,6 +239,7 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
         retVal = USB_STATUS_OK;
       }
       BSP_LedsSet(BSP_LedsGet() | 0x2 );
+	  clientAttached = true;
 	  break;
 
     case USB_CDC_SETCTRLLINESTATE:
@@ -251,6 +252,7 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
         retVal = USB_STATUS_OK;
       }
 	  BSP_LedsSet(0);
+	  clientAttached = false;
       break;
     }
   }
@@ -346,6 +348,8 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 }
 
 static void SendRBtoHost() {
+	if ( ! clientAttached ) return;
+
 	int i = 0;
  	while( ringbuffer_used(&rb) ) {
 		usbTxBuffer0[i++] = ringbuffer_getchar(&rb);

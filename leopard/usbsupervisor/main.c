@@ -96,7 +96,7 @@ int main( void )
   /* USBD_Connect();            */
 
 int count = 0;
-int c = 0;
+int c = -1;
   for (;;)
   {
 	count++;
