@@ -375,6 +375,8 @@ static void SendRBtoHost() {
 	
 	}
 
+// This needs to be re-named.   This will be the on-demand timer task 
+// That grabs larger chunks of stuff.
 static int sweep_counter = 0;
 static void RingbufferSweep(void) { 
 
@@ -383,7 +385,7 @@ static void RingbufferSweep(void) {
 	} else {
 		BSP_LedsSet(0);     
 		}
-	sweep_counter += 5;
+	sweep_counter += 10;
 	
 	if ( (sweep_counter > 1000) && !usbTxActive[0] ) {
 		sweep_counter -= 1000;
@@ -393,7 +395,7 @@ static void RingbufferSweep(void) {
 		SendRBtoHost();
 		}
 	// We have to re-call ourself.
-	USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
+	USBTIMER_Start(CDC_TIMER_ID, 10, RingbufferSweep);
 	}
 
 /**************************************************************************//**
@@ -455,7 +457,7 @@ static int LineCodingReceived(USB_Status_TypeDef status,
 Now for the offical system calls.
  *****************************************************************************/
 
-static void RingTxBite(RINGBUF *rb, uint8_t c, bool *txflag) {
+static void RingTxBite(RINGBUF *rb, uint8_t c, volatile bool *txflag) {
 	// See if there is other stuff in the ringbuffer.
 	int used = ringbuffer_used(&rb_IN);
 	if ( used ) {
@@ -476,7 +478,7 @@ static void RingTxBite(RINGBUF *rb, uint8_t c, bool *txflag) {
 
 int USBPutChar(int usbstream, uint8_t c) {
 	RINGBUF *rb = &rb_IN;
-	bool *active = &usbTxActive[usbstream];
+	volatile bool *active = &usbTxActive[usbstream];
 	if ( *active ) { // If there is xmission going on...
 		return(ringbuffer_addchar(rb,c));
 		}
