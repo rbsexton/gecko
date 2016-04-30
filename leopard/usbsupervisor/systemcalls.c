@@ -25,7 +25,7 @@ int32_t __SAPI_02_PutChar(unsigned long stream, uint8_t c) {
 	switch ( stream ) {
 		case 10:
 		case 11:
-			// return(USBPutChar(stream-1, c));
+			return(USBPutChar(stream-10, c));
 			break;
 		default:
 			ret = ringbuffer_addchar(&rb_IN,c);

@@ -191,6 +191,7 @@ static const uint8_t  *usbRxBuffer[  2 ] = { usbRxBuffer0, usbRxBuffer1 };
 static int            usbRxIndex;
 
 static bool           usbRxActive;
+volatile static bool usbTxActive[2] = { false, false }; // Mediates access to tx buffers.
 
 static bool clientAttached;
 /** @endcond */
@@ -248,7 +249,7 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
         USBD_Read(0, (void*) &cdcLineCoding, 7, LineCodingReceived);
         retVal = USB_STATUS_OK;
       }
-      BSP_LedsSet(BSP_LedsGet() | 0x2 );
+      // BSP_LedsSet(BSP_LedsGet() | 0x2 );
 	  clientAttached = true;
 	  break;
 
@@ -261,7 +262,7 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
         /* Do nothing ( Non compliant behaviour !! ) */
         retVal = USB_STATUS_OK;
       }
-	  BSP_LedsSet(0);
+	  // BSP_LedsSet(0);
 	  clientAttached = false;
       break;
     }
@@ -364,8 +365,11 @@ static void SendRBtoHost() {
  	while( ringbuffer_used(&rb_IN) ) {
 		usbTxBuffer0[i++] = ringbuffer_getchar(&rb_IN);
 		}
-	if ( i ) USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
-	// strcpy(usbTxBuffer0,"Foo");
+	if ( i ) {
+		usbTxActive[0] = true;
+		USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
+		}
+		// strcpy(usbTxBuffer0,"Foo");
 	// USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, 3, UsbDataTransmittedU0);
 	
 	
@@ -374,9 +378,14 @@ static void SendRBtoHost() {
 static int sweep_counter = 0;
 static void RingbufferSweep(void) { 
 
+	if (usbTxActive[0]) {
+		BSP_LedsSet(BSP_LedsGet() | 0x2 );     
+	} else {
+		BSP_LedsSet(0);     
+		}
 	sweep_counter += 5;
 	
-	if ( sweep_counter > 1000) {
+	if ( (sweep_counter > 1000) && !usbTxActive[0] ) {
 		sweep_counter -= 1000;
 		// int leds = BSP_LedsGet();
 		// leds++;
@@ -386,8 +395,6 @@ static void RingbufferSweep(void) {
 	// We have to re-call ourself.
 	USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
 	}
-
-
 
 /**************************************************************************//**
  * @brief Callback function called whenever a packet with data has been
@@ -412,6 +419,7 @@ static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
     {
       // USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
     }
+  usbTxActive[0] = false;
   return USB_STATUS_OK;
 }
 
@@ -441,5 +449,47 @@ static int LineCodingReceived(USB_Status_TypeDef status,
   }
   return USB_STATUS_REQ_ERR;
 }
+
+
+/**************************************************************************//**
+Now for the offical system calls.
+ *****************************************************************************/
+
+static void RingTxBite(RINGBUF *rb, uint8_t c, bool *txflag) {
+	// See if there is other stuff in the ringbuffer.
+	int used = ringbuffer_used(&rb_IN);
+	if ( used ) {
+		int i;
+		if ( used > 31 ) used = 31; // Set a max size.
+		for(i=0; i < used; i++) usbTxBuffer0[i] = ringbuffer_getchar(rb);
+		*txflag = true;
+		USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
+		ringbuffer_addchar(rb,c); // Don't lose it or put it in the wrong spot.
+		}
+	else { // Just this character
+		usbTxBuffer0[0] = c;
+		*txflag = true;
+		USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, 1, UsbDataTransmittedU0);		
+		}
+	
+	}
+
+int USBPutChar(int usbstream, uint8_t c) {
+	RINGBUF *rb = &rb_IN;
+	bool *active = &usbTxActive[usbstream];
+	if ( *active ) { // If there is xmission going on...
+		return(ringbuffer_addchar(rb,c));
+		}
+	else {
+		// See if there is other stuff in the ringbuffer.
+		if ( clientAttached ) {
+			RingTxBite(rb,c,active);
+			return(ringbuffer_free(rb));
+			}
+		else {
+			return(ringbuffer_addchar(rb,c));
+			}
+		}
+	}	
 
 /** @endcond */

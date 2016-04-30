@@ -104,7 +104,7 @@ int c = -1;
 		count -= 1000000;
 		c++;
 		c %= 26;
-		PutChar(0,c + 'A');
+		PutChar(10,c + 'A');
 	}
 	// MSDD_Handler();             /* Serve the MSD device. */
   }
