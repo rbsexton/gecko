@@ -14,7 +14,7 @@ uint32_t* __SAPI_01_GetRuntimeData(int i) {
 	else return(0);
 }
 
-extern RINGBUF rb;
+extern RINGBUF rb_IN;
 
 /// @parameters
 /// @R0 - Stream Number
@@ -28,7 +28,7 @@ int32_t __SAPI_02_PutChar(unsigned long stream, uint8_t c) {
 			// return(USBPutChar(stream-1, c));
 			break;
 		default:
-			ret = ringbuffer_addchar(&rb,c);
+			ret = ringbuffer_addchar(&rb_IN,c);
 		}
 	return(ret);
 	}

@@ -27,10 +27,19 @@
 
 #include "ringbuffer.h"
 
-RINGBUF rb;
+RINGBUF rb_IN;
+RINGBUF rb_OUT;
 
-#define RBPAYLOAD 32
-uint8_t rb_storage[RBPAYLOAD];
+// The most we'll buffer before a packet to the host.
+// This should be big enough to hold all of the startup messages.
+#define RBPAYLOAD_IN 128
+uint8_t rb_storage_in[RBPAYLOAD_IN];
+
+// This only needs to be big enough to guarantee room for a single packet 
+// from the host.
+#define RBPAYLOAD_OUT 64 
+uint8_t rb_storage_out[RBPAYLOAD_OUT];
+
 
 
 /**************************************************************************//**
@@ -191,7 +200,8 @@ static bool clientAttached;
  *****************************************************************************/
 void CDC_Init( void )
 {
-  ringbuffer_init(&rb,rb_storage,32);
+  ringbuffer_init(&rb_IN,rb_storage_in,RBPAYLOAD_IN);
+  ringbuffer_init(&rb_OUT,rb_storage_out,RBPAYLOAD_OUT);
 }
 
 /**************************************************************************//**
@@ -351,8 +361,8 @@ static void SendRBtoHost() {
 	if ( ! clientAttached ) return;
 
 	int i = 0;
- 	while( ringbuffer_used(&rb) ) {
-		usbTxBuffer0[i++] = ringbuffer_getchar(&rb);
+ 	while( ringbuffer_used(&rb_IN) ) {
+		usbTxBuffer0[i++] = ringbuffer_getchar(&rb_IN);
 		}
 	if ( i ) USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
 	// strcpy(usbTxBuffer0,"Foo");
