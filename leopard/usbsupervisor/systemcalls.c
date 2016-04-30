@@ -9,8 +9,9 @@
 
 #include "usb-sapi.h"
 
-void __SAPI_01_GetRuntimeData(int i) {
-	return(0);
+uint32_t* __SAPI_01_GetRuntimeData(int i) {
+	if ( i == 0 ) return(0);
+	else return(0);
 }
 
 extern RINGBUF rb;
