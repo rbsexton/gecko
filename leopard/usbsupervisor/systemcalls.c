@@ -65,6 +65,13 @@ uint32_t __SAPI_06_EOL(unsigned long stream) {
 }
 
 // Stubbed out
+uint32_t __SAPI_13_CPUUsage() {
+	static uint32_t lastcount;
+	return(++lastcount);
+}
+
+
+// Stubbed out
 uint32_t __SAPI_14_PetWatchdog(unsigned long machineticks) {
 	return(machineticks);
 }
