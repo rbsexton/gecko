@@ -37,9 +37,7 @@ int32_t __SAPI_03_GetChar(unsigned long stream) {
 	switch ( stream ) {
 		case 10:
 		case 11:
-			// return(USBGetChar(stream-1));
-			return(-1);
-			
+			return(USBGetChar(stream-10));			
 			break;
 		default:
 			return(-1);
@@ -50,8 +48,7 @@ uint32_t __SAPI_04_GetCharAvail(unsigned long stream) {
 	switch ( stream ) {
 		case 10:
 		case 11:
-			// return(USBGetCharAvail(stream-1));
-			return(0);
+			return(USBGetCharAvail(stream-10));
 			break;
 		default:
 			return(0);

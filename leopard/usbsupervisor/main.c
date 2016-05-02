@@ -105,7 +105,12 @@ int c = -1;
 		c++;
 		c %= 26;
 		PutChar(10,c + 'A');
-	}
+		int c2 = GetChar(10);
+		while ( c2 > 0 ) {
+			PutChar(10,c2);
+			c2 = GetChar(10);
+			}
+		}
 	// MSDD_Handler();             /* Serve the MSD device. */
   }
 }

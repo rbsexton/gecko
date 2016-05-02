@@ -191,7 +191,7 @@ static const uint8_t  *usbRxBuffer[  2 ] = { usbRxBuffer0, usbRxBuffer1 };
 static int            usbRxIndex;
 
 static bool           usbRxActive;
-volatile static bool usbTxActive[2] = { false, false }; // Mediates access to tx buffers.
+static volatile bool usbTxActive[2] = { false, false }; // Mediates access to tx buffers.
 
 static bool clientAttached;
 /** @endcond */
@@ -337,15 +337,20 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
   {
 
 	// Put the data into the ringbuffer.  This could also be done with bulk.
-
-	// uint32_t i;
-	// for(i = 0; i < xferred; i++) {
-	//	ringbuffer_addchar(&rb, usbRxBuffer[usbRxIndex][i]);
-	//}
 	
-	USBD_Write(CDC_EP_DATA_IN, (void*) usbRxBuffer[ usbRxIndex ],
-               xferred, UsbDataTransmittedU0);
-    
+	RINGBUF *rb = &rb_OUT;
+	int i=0;
+	if ( xferred < ringbuffer_free(rb)) {
+		while ( xferred-- ) ringbuffer_addchar(rb, usbRxBuffer[usbRxIndex][i++]);
+		}
+		
+	// uint32_t i;
+	
+	// USBD_Write(CDC_EP_DATA_IN, (void*) usbRxBuffer[ usbRxIndex ],
+    //           xferred, UsbDataTransmittedU0);
+
+	// Now we decide whether or not to request another packet the 
+	// next time we get polled.    
     usbRxIndex ^= 1; // Switch to the other one.
     /* Start a new USB receive transfer. */
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
@@ -493,5 +498,17 @@ int USBPutChar(int usbstream, uint8_t c) {
 			}
 		}
 	}	
+
+// Implement the SAPI Calls.
+uint32_t USBGetChar(uint32_t stream) {
+	RINGBUF *rb = &rb_OUT;
+	if ( ringbuffer_used(rb) ) return(ringbuffer_getchar(rb));
+	else return(-1);
+	}
+
+uint32_t USBGetCharAvail(uint32_t stream) {
+	RINGBUF *rb = &rb_OUT;	
+	return( ringbuffer_used(rb));
+	}
 
 /** @endcond */
