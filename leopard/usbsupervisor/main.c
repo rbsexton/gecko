@@ -62,6 +62,7 @@ const USBD_Init_TypeDef usbInitStruct =
  * @brief main - the entrypoint after reset.
  *****************************************************************************/
 
+extern uint32_t app_start_address;
 extern RINGBUF rb;
 int main( void )
 {
@@ -84,8 +85,8 @@ int main( void )
   /* Initialize and start USB device stack. */
   USBD_Init(&usbInitStruct);
 
-
-   NVIC_EnableIRQ(PendSV_IRQn);	
+   // We need PendSV to launch forth.  Its always enabled.
+   NVIC_SetPriority(PendSV_IRQn,7);
 
   /*
    * When using a debugger it is practical to uncomment the following three
@@ -94,6 +95,16 @@ int main( void )
   /* USBD_Disconnect();         */
   /* USBTIMER_DelayMs( 1000 );  */
   /* USBD_Connect();            */
+
+	// Make the one-way trip.
+	
+    LaunchApp(0x20000);
+
+	// char buf[20];
+	// usprintf(buf,"%x",*((unsigned long *) (0xE000ED04) ));
+	// SegmentLCD_Write(buf);
+
+
 
 int count = 0;
 int c = -1;
