@@ -98,33 +98,30 @@ int main( void )
 
 	// Make the one-way trip.
 	
-    LaunchApp(0x20000);
+    // LaunchApp(0x20000);
 
 	// char buf[20];
 	// usprintf(buf,"%x",*((unsigned long *) (0xE000ED04) ));
 	// SegmentLCD_Write(buf);
 
-
-
 int count = 0;
 int c = -1;
-  for (;;)
-  {
+  for (;;) {
 	count++;
 	if ( count > 1000000) {
 		count -= 1000000;
 		c++;
 		c %= 26;
 		PutChar(10,c + 'A');
-		int c2 = GetChar(10);
-		while ( c2 > 0 ) {
-			PutChar(10,c2);
-			c2 = GetChar(10);
-			}
+	}
+	int c2 = GetChar(10);
+	while ( c2 > 0 ) {
+		PutChar(10,c2);
+		PutChar(10,'!');
+		c2 = GetChar(10);
 		}
-	// MSDD_Handler();             /* Serve the MSD device. */
-  }
-}
+	}
+ }
 
 /**************************************************************************//**
  * @brief
