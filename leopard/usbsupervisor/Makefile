@@ -126,7 +126,8 @@ INCLUDEPATHS += \
 -I$(SDK)/usb/inc \
 -I$(SDK)/kits/common/drivers \
 -I$(SDK)/kits/common/bsp \
--I$(SDK)/kits/EFM32LG_STK3600/config
+-I$(SDK)/kits/EFM32LG_STK3600/config \
+-I../../../sockpuppet/sapi
 
 ####################################################################
 # Files                                                            #
