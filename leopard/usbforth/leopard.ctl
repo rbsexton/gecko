@@ -100,7 +100,7 @@ PROG PROGd PROGu  CDATA                 \ use Code for HERE , and so on
 
 $100 equ UP-SIZE		\ size of each task's user area
 $080 equ SP-SIZE		\ size of each task's data stack
-$080 equ RP-SIZE		\ size of each task's return stack
+$100 equ RP-SIZE		\ size of each task's return stack
 up-size rp-size + sp-size +
   equ task-size			\ size of TASK data area
 \ define the number of cells of guard space at the top of the data stack
@@ -218,7 +218,7 @@ internal
 ;
 
 : .CPU		\ -- ; display CPU type
-  ." MPE ROM PowerForth for Cortex-M0" cr
+  ." MPE ROM PowerForth for Cortex-M3" cr
   version$ $. space BuildDate$ $.
 ;
 external
