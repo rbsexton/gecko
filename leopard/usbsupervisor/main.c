@@ -27,6 +27,8 @@
 #include "descriptors.h"
 
 #include "ringbuffer.h"
+#include "testsyscall.h"
+
 
 /**************************************************************************//**
  *
@@ -98,7 +100,7 @@ int main( void )
 
 	// Make the one-way trip.
 	
-    // LaunchApp(0x20000);
+    LaunchApp(0x20000);
 
 	// char buf[20];
 	// usprintf(buf,"%x",*((unsigned long *) (0xE000ED04) ));
@@ -114,11 +116,16 @@ int c = -1;
 		c %= 26;
 		PutChar(10,c + 'A');
 	}
-	int c2 = GetChar(10);
-	while ( c2 > 0 ) {
+	// int c2 = GetChar(10);
+	// if ( c2 < 0 ) {
+	// __asm("wfi");
+	int c2 = GetCharAvail(10);
+	if ( c2 == 0 ) {
+		__asm("wfi");
+	} else {
+		c2 = GetChar(10);
 		PutChar(10,c2);
 		PutChar(10,'!');
-		c2 = GetChar(10);
 		}
 	}
  }
