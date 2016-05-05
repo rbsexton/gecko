@@ -46,7 +46,7 @@ END-CODE
 CODE (serkeyfc) \ base -- char  
 \ *G Get a character from the port, or -1 for fail
 	mov r0, tos	
-	mov r1, # 0 \ No blocking.
+	mov r1, up \ Block!
 	svc # SAPI_VEC_03_GetChar
 	mov tos, r0
 	next,

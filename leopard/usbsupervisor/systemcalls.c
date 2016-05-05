@@ -39,7 +39,7 @@ int __SAPI_03_GetChar(int stream, unsigned long *tcb) {
 	switch ( stream ) {
 		case 10:
 		case 11:
-			return(USBGetChar(stream-10));			
+			return(USBGetChar(stream-10, tcb));			
 			break;
 		default:
 			return(-1);
