@@ -134,9 +134,10 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
 
 \ Kernel components
  1 equ ColdChain?		\ nz to use cold chain mechanism
- 0 equ tasking?			\ true if multitasker needed
-   #6 cells equ tcb-size		\   for internal consistency check
-   0 equ event-handler?		\   true to include event handler
+ 1 equ tasking?			\ true if multitasker needed
+   #6 cells equ tcb-size	\   for internal consistency check
+   1 equ irqsafe-usermode?  \ Use LDREX/STREX for interrupt safety.
+   1 equ event-handler?		\   true to include event handler
    0 equ message-handler?	\   true to include message handler
    0 equ semaphores?		\ true to include semaphores
  0 equ timebase?		\ true for TIMEBASE code
@@ -182,7 +183,9 @@ cell equ cell				\ size of a cell (16 bits)
   include %AppDir%/SysCalls		\ System Calls.  Define these early.
   \ include %SPDir%/dylink     		\ Runtime Linking
 
-  \ include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
+  include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
+  include %LocalCM3%/pause     		\ A customized version of pause.
+  include %LocalCM3%/idlewfi     	\ A task that can call wfi.  Low-budget power savings.
   \ include %AppDir%/LeopardGecko		\ Various Addresses
 
 
