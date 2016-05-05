@@ -40,7 +40,10 @@ uint8_t rb_storage_in[RBPAYLOAD_IN];
 #define RBPAYLOAD_OUT 64 
 uint8_t rb_storage_out[RBPAYLOAD_OUT];
 
+// When a client requests wakeup, we need to remember.
 
+long *wake_OUT[1];
+long *wake_IN[1];
 
 /**************************************************************************//**
  * @addtogroup Cdc
@@ -343,7 +346,12 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 	if ( xferred < ringbuffer_free(rb)) {
 		while ( xferred-- ) ringbuffer_addchar(rb, usbRxBuffer[usbRxIndex][i++]);
 		}
-		
+	
+	// See if there is a wake request
+	if ( wake_OUT[0] ) {
+		*wake_OUT[0] |= 1; // Set the run bit.
+		wake_OUT[0] = 0;
+		}	
 	// uint32_t i;
 	
 	// USBD_Write(CDC_EP_DATA_IN, (void*) usbRxBuffer[ usbRxIndex ],
@@ -500,10 +508,16 @@ int USBPutChar(int usbstream, uint8_t c) {
 	}	
 
 // Implement the SAPI Calls.
-uint32_t USBGetChar(uint32_t stream) {
+uint32_t USBGetChar(uint32_t stream, long *tcb) {
 	RINGBUF *rb = &rb_OUT;
 	if ( ringbuffer_used(rb) ) return(ringbuffer_getchar(rb));
-	else return(-1);
+	else {
+		if ( tcb ) {
+			wake_OUT[0] = tcb + 2; // Go ahead and correct the pointer.
+			tcb[2] &= ~1; // Clear the run bit
+			}
+		return(-1);
+		}
 	}
 
 uint32_t USBGetCharAvail(uint32_t stream) {
