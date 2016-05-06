@@ -67,6 +67,12 @@ int __SAPI_06_EOL(int stream) {
 }
 
 // Stubbed out
+unsigned __SAPI_12_SetWakeRequest(int id, unsigned *addr, unsigned mask) {
+	if ( id == 0 ) return(*addr);
+	else return(mask);
+	}
+
+// Stubbed out
 unsigned __SAPI_13_CPUUsage() {
 	static unsigned count = 0;
 	return(++count);
@@ -74,6 +80,8 @@ unsigned __SAPI_13_CPUUsage() {
 
 // Stubbed out
 void __SAPI_14_PetWatchdog(unsigned machineticks) {
+	static unsigned count = 0;
+	count += machineticks;
 	return;
 }
 
