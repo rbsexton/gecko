@@ -165,6 +165,7 @@ static int UsbDataTransmittedU0(USB_Status_TypeDef status,
 	}
 
 static void RingbufferSweep(void);
+static void RingTXCheck(void);
 
 #if 0 
 static int UsbDataReceivedU1(USB_Status_TypeDef status,
@@ -332,6 +333,7 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     usbRxActive = true;
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
+	// Don't trigger a send just yet.   The client may not be ready.
 	// USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
   }
 
@@ -466,11 +468,12 @@ static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
   (void) remaining;            /* Unused parameter. */
   (void) channel;              /* As of yet parameter. */
 
-  if (status == USB_STATUS_OK)
-    {
-      // USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
-    }
   usbTxActive[0] = false;
+
+  if (status == USB_STATUS_OK) {
+	RingTXCheck(); // Look for more work.	  
+    // USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
+    }
   return USB_STATUS_OK;
 }
 
