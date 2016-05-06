@@ -84,8 +84,8 @@ Stamp? 0= [if] +xrefs [then]	\ enable cross references
 \ 3/4 of the RAM.
 
   $0002:0000 $0002:FFFF cdata section Leopard	\ code section in boot Flash
-  $2000:2000 $2000:21FF idata section PROGd	\  IDATA
-  $2000:2200 $2000:7FFF udata section PROGu	\  UDATA
+  $2000:2000 $2000:6fff idata section PROGd	\  IDATA - Interactive code here.
+  $2000:7000 $2000:7FFF udata section PROGu	\  UDATA
 
 interpreter
 : prog Leopard ;			\ synonym
@@ -174,6 +174,7 @@ cell equ cell				\ size of a cell (16 bits)
   include %CommonDir%/kernel62          \ high level kernel definitions 
 
   include %CommonDir%/Devtools		\ DUMP .S etc development tools
+  include %CommonDir%/DebugTools	
   \ include %CommonDir%/Voctools		\ ORDER VOCS etc
   include %CommonDir%/methods		\ target support for methods
   \ include %CpuDir%/LocalCM3		\ local variables
