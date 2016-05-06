@@ -325,7 +325,7 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     usbRxActive = true;
     USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
-	USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
+	// USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
   }
 
   else if ((oldState == USBD_STATE_CONFIGURED) &&
@@ -340,7 +340,7 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
   {
     /* We have been suspended, stop CDC functionality. */
     /* Reduce current consumption to below 2.5 mA.     */
-    USBTIMER_Stop(CDC_TIMER_ID);
+    // USBTIMER_Stop(CDC_TIMER_ID);
   }
 }
 
@@ -435,7 +435,7 @@ static void RingbufferSweep(void) {
 		SendRBtoHost();
 		}
 	// We have to re-call ourself.
-	USBTIMER_Start(CDC_TIMER_ID, 10, RingbufferSweep);
+	// USBTIMER_Start(CDC_TIMER_ID, 10, RingbufferSweep);
 	}
 
 /**************************************************************************//**
@@ -470,23 +470,26 @@ static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
 Now for the offical system calls.
  *****************************************************************************/
 
-static void RingTxBite(RINGBUF *rb, uint8_t c, volatile bool *txflag) {
-	// See if there is other stuff in the ringbuffer.
-	int used = ringbuffer_used(&rb_IN);
-	if ( used ) {
-		int i;
-		if ( used > 31 ) used = 31; // Set a max size.
-		for(i=0; i < used; i++) usbTxBuffer0[i] = ringbuffer_getchar(rb);
-		*txflag = true;
-		USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
-		ringbuffer_addchar(rb,c); // Don't lose it or put it in the wrong spot.
+static void RingTxBite(RINGBUF *rb, volatile bool *txflag) {
+	int i;
+	int used = ringbuffer_used(rb);
+	if ( used > 31 ) used = 31; // Set a max size.
+	for(i=0; i < used; i++) usbTxBuffer0[i] = ringbuffer_getchar(rb);
+	*txflag = true;
+	USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
+	}
+
+// The most effient way to handle things is to do a transmission
+// when the outgoing ringbuffer starts getting full, or after 
+// a timeout. This routine is our callback. 
+static void RingTXCheck(void) {
+	RINGBUF *rb = &rb_IN;
+	volatile bool *active = &usbTxActive[0];
+		
+	int used = ringbuffer_used(rb);
+	if ( used ) { 
+		RingTxBite(rb,active);
 		}
-	else { // Just this character
-		usbTxBuffer0[0] = c;
-		*txflag = true;
-		USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, 1, UsbDataTransmittedU0);		
-		}
-	
 	}
 
 int USBPutChar(int usbstream, uint8_t c) {
@@ -495,17 +498,20 @@ int USBPutChar(int usbstream, uint8_t c) {
 	if ( *active ) { // If there is xmission going on...
 		return(ringbuffer_addchar(rb,c));
 		}
-	else {
-		// See if there is other stuff in the ringbuffer.
-		if ( clientAttached ) {
-			RingTxBite(rb,c,active);
-			return(ringbuffer_free(rb));
-			}
-		else {
-			return(ringbuffer_addchar(rb,c));
-			}
+		
+	// Go Ahead and put it into the buffer.
+	// Scenarios 
+	// 1 - There was room.   Call txbite.
+	// 2 - There was not room.
+	int free = ringbuffer_addchar(rb,c);
+	
+	if ( clientAttached ) {
+		// If the ringbuffer is full, go ahead and trigger.
+		if ( free == 0 )  RingTXCheck();
+		else USBTIMER_Start(CDC_TIMER_ID, 10, RingTXCheck);
 		}
-	}	
+	return(free);
+	}
 
 // Implement the SAPI Calls.
 uint32_t USBGetChar(uint32_t stream, long *tcb) {
