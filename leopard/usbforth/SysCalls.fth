@@ -60,6 +60,15 @@ CODE (serkey?) \ base -- t/f
 	mov tos, r0
 	next,
 END-CODE
+
+CODE (sercrfc) \ base -- return  
+\ *G Send a line terminator to the port.  Return 0 for success, -1 for fail.
+	mov r0, tos	
+	mov r1, up \ Block!
+	svc # SAPI_VEC_06_EOL
+	mov tos, r0
+	next,
+END-CODE
  
 \ These two can be created from simpler things, and are optional.
 \ CODE (type) 

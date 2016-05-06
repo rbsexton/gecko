@@ -62,9 +62,16 @@ int __SAPI_05_PutString(int stream, uint8_t *c, int len, unsigned long *tcb) {
 }
 
 // Stubbed out.
-int __SAPI_06_EOL(int stream) {
-	return(stream);
-}
+int __SAPI_06_EOL(int stream, unsigned long *tcb) {
+	switch ( stream ) {
+		case 10:
+		case 11:
+			return(USBOutEOL(stream-10,tcb));
+			break;
+		default:
+			return(0);
+		}
+	}
 
 // Stubbed out
 unsigned __SAPI_12_SetWakeRequest(int id, unsigned *addr, unsigned mask) {

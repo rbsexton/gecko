@@ -512,7 +512,17 @@ static void RingTXCheck(void) {
 		}
 	}
 
+static void CheckAndSend(int free) {
+	if ( clientAttached ) {
+		// If the ringbuffer is full, go ahead and trigger.
+		if ( free == 0 )  RingTXCheck();
+		else USBTIMER_Start(CDC_TIMER_ID, 10, RingTXCheck);
+		}
+	}
+	
 int USBPutChar(int usbstream, uint8_t c) {
+	count_syscalls_putchar[usbstream]++;
+	
 	RINGBUF *rb = &rb_IN;
 	volatile bool *active = &usbTxActive[usbstream];
 	if ( *active ) { // If there is xmission going on...
@@ -524,17 +534,14 @@ int USBPutChar(int usbstream, uint8_t c) {
 	// 1 - There was room.   Call txbite.
 	// 2 - There was not room.
 	int free = ringbuffer_addchar(rb,c);
-	
-	if ( clientAttached ) {
-		// If the ringbuffer is full, go ahead and trigger.
-		if ( free == 0 )  RingTXCheck();
-		else USBTIMER_Start(CDC_TIMER_ID, 10, RingTXCheck);
-		}
+	CheckAndSend(free);
 	return(free);
 	}
 
 // Implement the SAPI Calls.
-uint32_t USBGetChar(uint32_t stream, long *tcb) {
+uint32_t USBGetChar(uint32_t usbstream, long *tcb) {
+	count_syscalls_getchar[usbstream]++;
+	
 	RINGBUF *rb = &rb_OUT;
 	if ( ringbuffer_used(rb) ) return(ringbuffer_getchar(rb));
 	else {
@@ -546,7 +553,32 @@ uint32_t USBGetChar(uint32_t stream, long *tcb) {
 		}
 	}
 
-uint32_t USBGetCharAvail(uint32_t stream) {
+int USBOutEOL(uint32_t usbstream, long *tcb) {
+	count_syscalls_eol[usbstream]++;
+
+	RINGBUF *rb = &rb_IN;
+	int free = ringbuffer_free(rb);
+	if  ( free >= 2 ) {
+		ringbuffer_addchar(rb,13);
+		ringbuffer_addchar(rb,10); // Don't use magic C characters!
+		free -= 2;
+		}
+	else { // If the buffer is full, somebody is working on things.
+		// if ( tcb ) {
+		//	wake_IN[0] = tcb + 2; // Go ahead and correct the pointer.
+		//	tcb[2] &= ~1; // Clear the run bit
+		//	}
+		return(0);
+		}
+	
+	volatile bool *active = &usbTxActive[usbstream];
+	if ( *active == false ) { // If there is no xmission going on.
+		CheckAndSend(free);
+		}
+	return(1);
+	}
+
+uint32_t USBGetCharAvail(uint32_t usbstream) {
 	RINGBUF *rb = &rb_OUT;	
 	return( ringbuffer_used(rb));
 	}
