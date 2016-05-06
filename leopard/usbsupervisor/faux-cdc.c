@@ -46,11 +46,17 @@ long *wake_OUT[1];
 long *wake_IN[1];
 
 // Counters.
-unsigned count_xmit_packets;
-unsigned count_xmit_bytes;
+unsigned count_usb_xmit_packets;
+unsigned count_usb_xmit_bytes;
 
 unsigned count_recv_packets;
 unsigned count_recv_bytes;
+
+unsigned count_syscalls_putchar[2];
+unsigned count_syscalls_getchar[2];
+unsigned count_syscalls_eol[2];
+
+
 
 /**************************************************************************//**
  * @addtogroup Cdc
@@ -417,8 +423,8 @@ static void SendRBtoHost() {
 	if ( i ) {
 		usbTxActive[0] = true;
 		USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
-		count_xmit_packets++;
-		count_xmit_bytes += i;		
+		count_usb_xmit_packets++;
+		count_usb_xmit_bytes += i;		
 		}
 		// strcpy(usbTxBuffer0,"Foo");
 	// USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, 3, UsbDataTransmittedU0);
@@ -488,8 +494,8 @@ static void RingTxBite(RINGBUF *rb, volatile bool *txflag) {
 	if ( used > 31 ) used = 31; // Set a max size.
 	for(i=0; i < used; i++) usbTxBuffer0[i] = ringbuffer_getchar(rb);
 	*txflag = true;
-	count_xmit_packets++;
-	count_xmit_bytes += i;			
+	count_usb_xmit_packets++;
+	count_usb_xmit_bytes += i;			
 	USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
 	}
 
