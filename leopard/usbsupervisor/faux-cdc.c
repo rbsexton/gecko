@@ -276,6 +276,33 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
 
 /**************************************************************************//**
  * @brief
+ *   Callback function called when the data stage of a CDC_SET_LINECODING
+ *   setup command has completed.
+ *
+ * @param[in] status    Transfer status code.
+ * @param[in] xferred   Number of bytes transferred.
+ * @param[in] remaining Number of bytes not transferred.
+ *
+ * @return USB_STATUS_OK if data accepted.
+ *         USB_STATUS_REQ_ERR if data calls for modes we can not support.
+ *****************************************************************************/
+static int LineCodingReceived(USB_Status_TypeDef status,
+                              uint32_t xferred,
+                              uint32_t remaining)
+{
+  uint32_t frame = 0;
+  (void) remaining;
+
+  /* We have received new serial port communication settings from USB host. */
+  if ((status == USB_STATUS_OK) && (xferred == 7))
+  {
+    return USB_STATUS_OK;
+  }
+  return USB_STATUS_REQ_ERR;
+}
+
+/**************************************************************************//**
+ * @brief
  *   Callback function called each time the USB device state is changed.
  *   Starts CDC operation when device has been configured by USB host.
  *
@@ -436,33 +463,6 @@ static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
     }
   usbTxActive[0] = false;
   return USB_STATUS_OK;
-}
-
-/**************************************************************************//**
- * @brief
- *   Callback function called when the data stage of a CDC_SET_LINECODING
- *   setup command has completed.
- *
- * @param[in] status    Transfer status code.
- * @param[in] xferred   Number of bytes transferred.
- * @param[in] remaining Number of bytes not transferred.
- *
- * @return USB_STATUS_OK if data accepted.
- *         USB_STATUS_REQ_ERR if data calls for modes we can not support.
- *****************************************************************************/
-static int LineCodingReceived(USB_Status_TypeDef status,
-                              uint32_t xferred,
-                              uint32_t remaining)
-{
-  uint32_t frame = 0;
-  (void) remaining;
-
-  /* We have received new serial port communication settings from USB host. */
-  if ((status == USB_STATUS_OK) && (xferred == 7))
-  {
-    return USB_STATUS_OK;
-  }
-  return USB_STATUS_REQ_ERR;
 }
 
 
