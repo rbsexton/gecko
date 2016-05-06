@@ -41,7 +41,6 @@ uint8_t rb_storage_in[RBPAYLOAD_IN];
 uint8_t rb_storage_out[RBPAYLOAD_OUT];
 
 // When a client requests wakeup, we need to remember.
-
 long *wake_OUT[1];
 long *wake_IN[1];
 
@@ -55,7 +54,6 @@ unsigned count_recv_bytes;
 unsigned count_syscalls_putchar[2];
 unsigned count_syscalls_getchar[2];
 unsigned count_syscalls_eol[2];
-
 
 
 /**************************************************************************//**
@@ -541,7 +539,6 @@ int USBPutChar(int usbstream, uint8_t c) {
 // Implement the SAPI Calls.
 uint32_t USBGetChar(uint32_t usbstream, long *tcb) {
 	count_syscalls_getchar[usbstream]++;
-	
 	RINGBUF *rb = &rb_OUT;
 	if ( ringbuffer_used(rb) ) return(ringbuffer_getchar(rb));
 	else {
