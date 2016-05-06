@@ -175,7 +175,7 @@ cell equ cell				\ size of a cell (16 bits)
 
   include %CommonDir%/Devtools		\ DUMP .S etc development tools
   include %CommonDir%/DebugTools	
-  \ include %CommonDir%/Voctools		\ ORDER VOCS etc
+  include %CommonDir%/Voctools		\ ORDER VOCS etc
   include %CommonDir%/methods		\ target support for methods
   \ include %CpuDir%/LocalCM3		\ local variables
 
