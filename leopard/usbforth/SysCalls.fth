@@ -37,7 +37,7 @@ CODE (seremitfc) \ char base --
 \ ** return code and PAUSE + Retry 
 	mov r0, tos
 	ldr r1, [ psp ], # 4
-	mov r2, # 0 \ Don't request a wake.
+	[defined] SAPIWakeSupport? [if] mov r2, up [else] mov r2, # 0 [then] 
 	svc # SAPI_VEC_02_PutChar	
 	mov tos, r0
     next,
@@ -46,7 +46,7 @@ END-CODE
 CODE (serkeyfc) \ base -- char  
 \ *G Get a character from the port, or -1 for fail
 	mov r0, tos	
-	mov r1, up \ Block!
+	[defined] SAPIWakeSupport? [if] mov r1, up [else] mov r1, # 0 [then] 
 	svc # SAPI_VEC_03_GetChar
 	mov tos, r0
 	next,
@@ -64,7 +64,7 @@ END-CODE
 CODE (sercrfc) \ base -- return  
 \ *G Send a line terminator to the port.  Return 0 for success, -1 for fail.
 	mov r0, tos	
-	mov r1, up \ Block!
+	[defined] SAPIWakeSupport? [if] mov r1, up [else] mov r1, # 0 [then] 
 	svc # SAPI_VEC_06_EOL
 	mov tos, r0
 	next,
