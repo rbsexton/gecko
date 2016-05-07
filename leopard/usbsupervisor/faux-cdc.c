@@ -491,7 +491,7 @@ Now for the offical system calls.
 static void RingTxBite(RINGBUF *rb, volatile bool *txflag) {
 	int i;
 	int used = ringbuffer_used(rb);
-	if ( used > 31 ) used = 31; // Set a max size.
+	if ( used > 64 ) used = 64; // Set a max size.
 	for(i=0; i < used; i++) usbTxBuffer0[i] = ringbuffer_getchar(rb);
 	*txflag = true;
 	count_usb_xmit_packets++;
