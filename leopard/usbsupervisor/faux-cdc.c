@@ -558,11 +558,13 @@ int USBPutString(int usbstream, int len, uint8_t *p,  unsigned long *tcb) {
 	
 	RINGBUF *rb = &rb_IN;
 	int free = ringbuffer_free(rb);
-
-	int count = 0;
-	while(len && len < free) {
-		ringbuffer_addchar(rb,p[count]);
-		len--; count++; free--;
+	
+	if ( len > free ) len = free; // Don't over-flow the buffer.
+	free -= len; // Pre-account for the space that we'll use.
+	int ret = len;   // This is what we'll return.
+	
+	while( len-- ) {
+		ringbuffer_addchar(rb,*p++);
 		}
 
 	// In any case, we'll want to try and send it out.
@@ -570,19 +572,7 @@ int USBPutString(int usbstream, int len, uint8_t *p,  unsigned long *tcb) {
 	if ( *active == false ) { // If there is no xmission going on.
 		CheckAndSend(free);
 		}
-		
-	// If it all xferred, we're done.
-	if ( len ) { // Not all of it went.
-		// if ( tcb ) {
-		// 	wake_IN[0] = tcb + 2; // Go ahead and correct the pointer.
-		//	tcb[2] &= ~1; // Clear the run bit
-		//	}
-		return(count);
-		}
-	else {
-		return(0);
-		}	
-	
+	return(ret);	
 	}
 
 
