@@ -52,6 +52,8 @@ unsigned count_recv_packets;
 unsigned count_recv_bytes;
 
 unsigned count_syscalls_putchar[2];
+unsigned count_syscalls_putstring[2];
+unsigned count_syscalls_putstring_bytes[2];
 unsigned count_syscalls_getchar[2];
 unsigned count_syscalls_eol[2];
 
@@ -550,6 +552,40 @@ uint32_t USBGetChar(uint32_t usbstream, long *tcb) {
 		}
 	}
 
+int USBPutString(int usbstream, int len, uint8_t *p,  unsigned long *tcb) {
+	count_syscalls_putstring[usbstream]++;
+	count_syscalls_putstring_bytes[usbstream] += len;
+	
+	RINGBUF *rb = &rb_IN;
+	int free = ringbuffer_free(rb);
+
+	int count = 0;
+	while(len && len < free) {
+		ringbuffer_addchar(rb,p[count]);
+		len--; count++; free--;
+		}
+
+	// In any case, we'll want to try and send it out.
+	volatile bool *active = &usbTxActive[usbstream];
+	if ( *active == false ) { // If there is no xmission going on.
+		CheckAndSend(free);
+		}
+		
+	// If it all xferred, we're done.
+	if ( len ) { // Not all of it went.
+		// if ( tcb ) {
+		// 	wake_IN[0] = tcb + 2; // Go ahead and correct the pointer.
+		//	tcb[2] &= ~1; // Clear the run bit
+		//	}
+		return(count);
+		}
+	else {
+		return(0);
+		}	
+	
+	}
+
+
 int USBOutEOL(uint32_t usbstream, long *tcb) {
 	count_syscalls_eol[usbstream]++;
 
@@ -579,5 +615,9 @@ uint32_t USBGetCharAvail(uint32_t usbstream) {
 	RINGBUF *rb = &rb_OUT;	
 	return( ringbuffer_used(rb));
 	}
+
+
+
+
 
 /** @endcond */

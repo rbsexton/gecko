@@ -160,6 +160,7 @@ cell equ cell				\ size of a cell (16 bits)
 -1 equ true
 
  0 equ InitializeMSP? \ Don't initialize system stacks.
+ 1 equ SAPIWakeSupport? \ System calls wrappers should pass UP.
 
 \ ************
 \ *S Kernel files

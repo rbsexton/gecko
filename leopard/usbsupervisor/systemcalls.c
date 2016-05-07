@@ -57,9 +57,16 @@ int __SAPI_04_GetCharAvail(int stream) {
 		}
 	}
 
-int __SAPI_05_PutString(int stream, uint8_t *c, int len, unsigned long *tcb) {
-	return(len);
-}
+int __SAPI_05_PutString(int stream,  int len, uint8_t *p, unsigned long *tcb) {
+	switch ( stream ) {
+		case 10:
+		case 11:
+			return(USBPutString(stream-10,len,p,tcb));
+			break;
+		default:
+			return(0);
+		}
+	}
 
 // Stubbed out.
 int __SAPI_06_EOL(int stream, unsigned long *tcb) {
