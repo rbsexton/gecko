@@ -149,6 +149,7 @@ $(SDK)/emlib/src/em_gpio.c \
 $(SDK)/emlib/src/em_int.c \
 $(SDK)/emlib/src/em_lcd.c \
 $(SDK)/emlib/src/em_msc.c \
+$(SDK)/emlib/src/em_rtc.c \
 $(SDK)/emlib/src/em_system.c \
 $(SDK)/emlib/src/em_timer.c \
 $(SDK)/emlib/src/em_usart.c \

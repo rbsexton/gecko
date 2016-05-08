@@ -17,6 +17,8 @@
 #include "em_assert.h"
 #include "em_cmu.h"
 #include "em_gpio.h"
+#include "em_rtc.h"
+
 #include "bsp.h"
 #include "segmentlcd.h"
 #include "bsp_trace.h"
@@ -61,6 +63,55 @@ const USBD_Init_TypeDef usbInitStruct =
 };
 
 /**************************************************************************//**
+ * @brief  Setup Real Time Clock (RTC)
+ *
+ * Intialize the RTC and use it to generate a 128Hz timebase.
+ *
+ *****************************************************************************/
+/* Set up RTC init struct*/
+const RTC_Init_TypeDef rtcInit =
+{
+  .debugRun = false,
+  .comp0Top = true,
+  .enable   = true,
+};
+
+void setupRtc(void)
+{
+  /* Input RTC init struct in initialize function */
+  RTC_Init(&rtcInit);
+
+  /* Set RTC compare value */
+  // rtcCountBetweenWakeup = ((SystemLFXOClockGet() * WAKEUP_INTERVAL_MS) / 1000);
+  RTC_CompareSet(0, 255);
+
+  /* Enable RTC interrupt from COMP0 */
+  RTC_IntEnable(RTC_IF_COMP0);
+
+  /* Enable RTC interrupt vector in NVIC */
+  NVIC_EnableIRQ(RTC_IRQn);
+
+  /* Enable RTC */
+  RTC_Enable(true);
+}
+
+/**************************************************************************//**
+ * @brief RTC Interrupt Handler.
+ *
+ * Interrupt at 128Hz and keep track of time.
+ * Produce a RTC item with 8 fractional bits.   That gives us about a year.
+ *
+ *****************************************************************************/
+uint32_t rtc_time;
+
+void RTC_IRQHandler(void) {
+	/* Clear interrupt source */
+	RTC_IntClear(RTC_IFC_COMP0);
+	
+	rtc_time += 2;
+    }
+
+/**************************************************************************//**
  * @brief main - the entrypoint after reset.
  *****************************************************************************/
 
@@ -74,10 +125,14 @@ int main( void )
   CMU_ClockSelectSet( cmuClock_HF, cmuSelect_HFXO );
   CMU_OscillatorEnable(cmuOsc_LFXO, true, false);
 
+  CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
+
   /* Initialize LCD driver */
   SegmentLCD_Init(false);
   SegmentLCD_Write("usbcomp");
   SegmentLCD_Symbol(LCD_SYMBOL_GECKO, true);
+
+  setupRtc();
 
   /* Initialize LED driver */
   BSP_LedsInit();
