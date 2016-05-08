@@ -196,7 +196,7 @@ timebase? [if]
   include %CommonDir%/Delays		\ time delays
   ' start-timers AtCold
 [else]
-  \ include %CommonDir%/Delays
+  include %CommonDir%/Delays
 [then]
 
 environment? [if]
