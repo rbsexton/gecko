@@ -99,8 +99,9 @@ void __SAPI_14_PetWatchdog(unsigned machineticks) {
 	return;
 }
 
+extern uint32_t rtc_ms;
 unsigned __SAPI_15_GetTimeMS(int kind) {
-	if (kind) 	return(0);
-	else return(1);
+	if (kind == 0) return(rtc_ms);
+	else return( (unsigned) &rtc_ms );
 }
 
