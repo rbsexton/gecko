@@ -103,12 +103,24 @@ void setupRtc(void)
  *
  *****************************************************************************/
 uint32_t rtc_time;
+uint32_t rtc_ms;
 
 void RTC_IRQHandler(void) {
+	static int err = 52; // Running error for the interpolator.
+
 	/* Clear interrupt source */
 	RTC_IntClear(RTC_IFC_COMP0);
-	
 	rtc_time += 2;
+	
+	// Interpolater - 
+	unsigned bump = 7;  // At least 7ms have passed.
+	// Num = 104, den = 128
+	err -= 104;
+	if ( err < 0 ) {
+		err += 128; 
+		bump++;
+		}
+	rtc_ms += bump;
     }
 
 /**************************************************************************//**
