@@ -182,7 +182,7 @@ cell equ cell				\ size of a cell (16 bits)
 
 
  
-  include %AppDir%/SysCalls		\ System Calls.  Define these early.
+  include %SAPIDir%/SysCalls		\ System Calls.  Define these early.
   \ include %SPDir%/dylink     		\ Runtime Linking
 
   include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
