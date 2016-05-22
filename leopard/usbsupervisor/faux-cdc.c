@@ -199,9 +199,9 @@ static const uint8_t  *usbRxBuffer[CHANNELS][  2 ] = {
 static int            usbRxIndex;
 
 static bool           usbRxActive;
-static volatile bool usbTxActive[2] = { false, false }; // Mediates access to tx buffers.
+static volatile bool usbTxActive[CHANNELS] = { false, false }; // Mediates access to tx buffers.
 
-static bool clientAttached;
+static bool clientAttached[CHANNELS];
 /** @endcond */
 
 /**************************************************************************//**
@@ -264,7 +264,7 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
         retVal = USB_STATUS_OK;
       }
       // BSP_LedsSet(BSP_LedsGet() | 0x2 );
-	  clientAttached = true;
+	  clientAttached[0] = true;
 	  break;
 
     case USB_CDC_SETCTRLLINESTATE:
@@ -277,7 +277,7 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
         retVal = USB_STATUS_OK;
       }
 	  // BSP_LedsSet(0);
-	  clientAttached = false;
+	  clientAttached[0] = false;
       break;
     }
   }
@@ -411,7 +411,7 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 }
 
 static void SendRBtoHost() {
-	if ( ! clientAttached ) return;
+	if ( ! clientAttached[0] ) return;
 
 	int i = 0;
  	while( ringbuffer_used(&rb_IN[0]) ) {
@@ -519,7 +519,7 @@ static void RingTXCheck1() {
 
 
 static void CheckAndSend(int free, int channel) {
-	if ( clientAttached ) {
+	if ( clientAttached[channel] ) {
 		// If the ringbuffer is full, go ahead and trigger.
 		if ( free == 0 )  RingTXCheck(channel);
 		else {
