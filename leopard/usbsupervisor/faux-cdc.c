@@ -155,7 +155,7 @@ static int UsbDataTransmittedU0(USB_Status_TypeDef status,
 	}
 
 static void RingbufferSweep(void);
-static void RingTXCheck(void);
+static void RingTXCheck(int channel);
 
 #if 0 
 static int UsbDataReceivedU1(USB_Status_TypeDef status,
@@ -474,7 +474,7 @@ static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
   usbTxActive[channel] = false;
 
   if (status == USB_STATUS_OK) {
-	RingTXCheck(); // Look for more work.	  
+	RingTXCheck(channel); // Look for more work.	  
     // USBTIMER_Start(CDC_TIMER_ID, CDC_RX_TIMEOUT, UartRxTimeout);
     }
   return USB_STATUS_OK;
@@ -485,7 +485,7 @@ static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
 Now for the offical system calls.
  *****************************************************************************/
 
-static void RingTxBite(RINGBUF *rb, volatile bool *txflag) {
+static void RingTxBite(RINGBUF *rb, volatile bool *txflag, int channel) {
 	int i;
 	int used = ringbuffer_used(rb);
 	if ( used > 64 ) used = 64; // Set a max size.
@@ -493,34 +493,46 @@ static void RingTxBite(RINGBUF *rb, volatile bool *txflag) {
 	*txflag = true;
 	count_usb_xmit_packets++;
 	count_usb_xmit_bytes += i;			
-	USBD_Write(ep_IN[0], (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
+	USBD_Write(ep_IN[channel], (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
 	}
 
 // The most effient way to handle things is to do a transmission
 // when the outgoing ringbuffer starts getting full, or after 
 // a timeout. This routine is our callback. 
-static void RingTXCheck(void) {
-	RINGBUF *rb = &rb_IN[0];
-	volatile bool *active = &usbTxActive[0];
+static void RingTXCheck(int channel) {
+	RINGBUF *rb = &rb_IN[channel];
+	volatile bool *active = &usbTxActive[channel];
 		
 	int used = ringbuffer_used(rb);
 	if ( used ) { 
-		RingTxBite(rb,active);
+		RingTxBite(rb,active,channel);
 		}
 	}
 
-static void CheckAndSend(int free) {
+static void RingTXCheck0() {
+	RingTXCheck(0);
+}
+
+static void RingTXCheck1() {
+	RingTXCheck(1);
+}
+
+
+static void CheckAndSend(int free, int channel) {
 	if ( clientAttached ) {
 		// If the ringbuffer is full, go ahead and trigger.
-		if ( free == 0 )  RingTXCheck();
-		else USBTIMER_Start(CDC_TIMER_ID, 10, RingTXCheck);
+		if ( free == 0 )  RingTXCheck(channel);
+		else {
+			if ( channel == 0 )	USBTIMER_Start(CDC_TIMER_ID, 10, RingTXCheck0);
+			else USBTIMER_Start(CDC_TIMER_ID, 10, RingTXCheck1); 
+			}
 		}
 	}
 	
 int USBPutChar(int usbstream, uint8_t c) {
 	count_syscalls_putchar[usbstream]++;
 	
-	RINGBUF *rb = &rb_IN[0];
+	RINGBUF *rb = &rb_IN[usbstream];
 	volatile bool *active = &usbTxActive[usbstream];
 	if ( *active ) { // If there is xmission going on...
 		return(ringbuffer_addchar(rb,c));
@@ -531,18 +543,18 @@ int USBPutChar(int usbstream, uint8_t c) {
 	// 1 - There was room.   Call txbite.
 	// 2 - There was not room.
 	int free = ringbuffer_addchar(rb,c);
-	CheckAndSend(free);
+	CheckAndSend(free, usbstream);
 	return(free);
 	}
 
 // Implement the SAPI Calls.
 uint32_t USBGetChar(uint32_t usbstream, long *tcb) {
 	count_syscalls_getchar[usbstream]++;
-	RINGBUF *rb = &rb_OUT[0];
+	RINGBUF *rb = &rb_OUT[usbstream];
 	if ( ringbuffer_used(rb) ) return(ringbuffer_getchar(rb));
 	else {
 		if ( tcb ) {
-			wake_OUT[0] = tcb + 2; // Go ahead and correct the pointer.
+			wake_OUT[usbstream] = tcb + 2; // Go ahead and correct the pointer.
 			tcb[2] &= ~1; // Clear the run bit
 			}
 		return(-1);
@@ -553,7 +565,7 @@ int USBPutString(int usbstream, int len, uint8_t *p,  unsigned long *tcb) {
 	count_syscalls_putstring[usbstream]++;
 	count_syscalls_putstring_bytes[usbstream] += len;
 	
-	RINGBUF *rb = &rb_IN[0];
+	RINGBUF *rb = &rb_IN[usbstream];
 	int free = ringbuffer_free(rb);
 	
 	if ( len > free ) len = free; // Don't over-flow the buffer.
@@ -567,7 +579,7 @@ int USBPutString(int usbstream, int len, uint8_t *p,  unsigned long *tcb) {
 	// In any case, we'll want to try and send it out.
 	volatile bool *active = &usbTxActive[usbstream];
 	if ( *active == false ) { // If there is no xmission going on.
-		CheckAndSend(free);
+		CheckAndSend(free, usbstream);
 		}
 	return(ret);	
 	}
@@ -576,7 +588,7 @@ int USBPutString(int usbstream, int len, uint8_t *p,  unsigned long *tcb) {
 int USBOutEOL(uint32_t usbstream, long *tcb) {
 	count_syscalls_eol[usbstream]++;
 
-	RINGBUF *rb = &rb_IN[0];
+	RINGBUF *rb = &rb_IN[usbstream];
 	int free = ringbuffer_free(rb);
 	if  ( free >= 2 ) {
 		ringbuffer_addchar(rb,13);
@@ -593,13 +605,13 @@ int USBOutEOL(uint32_t usbstream, long *tcb) {
 	
 	volatile bool *active = &usbTxActive[usbstream];
 	if ( *active == false ) { // If there is no xmission going on.
-		CheckAndSend(free);
+		CheckAndSend(free, usbstream);
 		}
 	return(1);
 	}
 
 uint32_t USBGetCharAvail(uint32_t usbstream) {
-	RINGBUF *rb = &rb_OUT[0];	
+	RINGBUF *rb = &rb_OUT[usbstream];	
 	return( ringbuffer_used(rb));
 	}
 
