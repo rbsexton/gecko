@@ -373,16 +373,16 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 
 	// Put the data into the ringbuffer.  This could also be done with bulk.
 	
-	RINGBUF *rb = &rb_OUT[0];
+	RINGBUF *rb = &rb_OUT[channel];
 	int i=0;
 	if ( xferred < ringbuffer_free(rb)) {
 		while ( xferred-- ) ringbuffer_addchar(rb, usbRxBuffer[usbRxIndex][i++]);
 		}
 	
 	// See if there is a wake request
-	if ( wake_OUT[0] ) {
-		*wake_OUT[0] |= 1; // Set the run bit.
-		wake_OUT[0] = 0;
+	if ( wake_OUT[channel] ) {
+		*wake_OUT[channel] |= 1; // Set the run bit.
+		wake_OUT[channel] = 0;
 		}	
 	// uint32_t i;
 	
@@ -393,7 +393,7 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 	// next time we get polled.    
     usbRxIndex ^= 1; // Switch to the other one.
     /* Start a new USB receive transfer. */
-    USBD_Read(ep_OUT[0], (void*) usbRxBuffer[ usbRxIndex ],
+    USBD_Read(ep_OUT[channel], (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
 
 	// int leds = BSP_LedsGet();
@@ -464,7 +464,7 @@ static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
   (void) remaining;            /* Unused parameter. */
   (void) channel;              /* As of yet parameter. */
 
-  usbTxActive[0] = false;
+  usbTxActive[channel] = false;
 
   if (status == USB_STATUS_OK) {
 	RingTXCheck(); // Look for more work.	  
