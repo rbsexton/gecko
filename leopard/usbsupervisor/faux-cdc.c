@@ -185,9 +185,16 @@ EFM32_PACK_END()
 
 STATIC_UBUF(usbRxBuffer0,  CDC_USB_RX_BUF_SIZ);   /* USB receive buffers.   */
 STATIC_UBUF(usbRxBuffer1,  CDC_USB_RX_BUF_SIZ);
+STATIC_UBUF(usbRxBuffer2,  CDC_USB_RX_BUF_SIZ);   /* USB receive buffers.   */
+STATIC_UBUF(usbRxBuffer3,  CDC_USB_RX_BUF_SIZ);
+
+
 STATIC_UBUF(usbTxBuffer0,  CDC_USB_TX_BUF_SIZ);   /* We only need one. */
 
-static const uint8_t  *usbRxBuffer[  2 ] = { usbRxBuffer0, usbRxBuffer1 };
+static const uint8_t  *usbRxBuffer[CHANNELS][  2 ] = {
+	{ usbRxBuffer0, usbRxBuffer1 },
+	{ usbRxBuffer2, usbRxBuffer3 }
+	};
 
 static int            usbRxIndex;
 
@@ -327,7 +334,7 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     /* Start receiving data from USB host. */
     usbRxIndex  = 0;
     usbRxActive = true;
-    USBD_Read(ep_OUT[0], (void*) usbRxBuffer[ usbRxIndex ],
+    USBD_Read(ep_OUT[0], (void*) usbRxBuffer[0][ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
 	// Don't trigger a send just yet.   The client may not be ready.
 	// USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
@@ -376,7 +383,7 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 	RINGBUF *rb = &rb_OUT[channel];
 	int i=0;
 	if ( xferred < ringbuffer_free(rb)) {
-		while ( xferred-- ) ringbuffer_addchar(rb, usbRxBuffer[usbRxIndex][i++]);
+		while ( xferred-- ) ringbuffer_addchar(rb, usbRxBuffer[channel][usbRxIndex][i++]);
 		}
 	
 	// See if there is a wake request
@@ -393,7 +400,7 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 	// next time we get polled.    
     usbRxIndex ^= 1; // Switch to the other one.
     /* Start a new USB receive transfer. */
-    USBD_Read(ep_OUT[channel], (void*) usbRxBuffer[ usbRxIndex ],
+    USBD_Read(ep_OUT[channel], (void*) usbRxBuffer[channel][ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
 
 	// int leds = BSP_LedsGet();
