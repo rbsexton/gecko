@@ -29,8 +29,8 @@
 
 #define CHANNELS 2
 
-RINGBUF rb_IN;
-RINGBUF rb_OUT;
+RINGBUF rb_IN[CHANNELS];
+RINGBUF rb_OUT[CHANNELS];
 
 // We need to look up endpoint numbers. 
 int ep_IN[CHANNELS];
@@ -39,16 +39,16 @@ int ep_OUT[CHANNELS];
 // The most we'll buffer before a packet to the host.
 // This should be big enough to hold all of the startup messages.
 #define RBPAYLOAD_IN 128
-uint8_t rb_storage_in[RBPAYLOAD_IN];
+uint8_t rb_storage_in[CHANNELS][RBPAYLOAD_IN];
 
 // This only needs to be big enough to guarantee room for a single packet 
 // from the host.
 #define RBPAYLOAD_OUT 64 
-uint8_t rb_storage_out[RBPAYLOAD_OUT];
+uint8_t rb_storage_out[CHANNELS][RBPAYLOAD_OUT];
 
 // When a client requests wakeup, we need to remember.
-long *wake_OUT[1];
-long *wake_IN[1];
+long *wake_OUT[CHANNELS];
+long *wake_IN[CHANNELS];
 
 // Counters.
 unsigned count_usb_xmit_packets;
@@ -205,8 +205,11 @@ void CDC_Init( void )
 	ep_IN[0] = CDC_EP_DATA_IN;
 	ep_OUT[0] = CDC_EP_DATA_OUT;
 
-	ringbuffer_init(&rb_IN,rb_storage_in,RBPAYLOAD_IN);
-	ringbuffer_init(&rb_OUT,rb_storage_out,RBPAYLOAD_OUT);
+	int i;
+	for ( i = 0 ; i < 1; i++ ) {
+		ringbuffer_init(&rb_IN[i],rb_storage_in[i],RBPAYLOAD_IN);
+		ringbuffer_init(&rb_OUT[i],rb_storage_out[i],RBPAYLOAD_OUT);		
+	}
 }
 
 /**************************************************************************//**
@@ -370,7 +373,7 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 
 	// Put the data into the ringbuffer.  This could also be done with bulk.
 	
-	RINGBUF *rb = &rb_OUT;
+	RINGBUF *rb = &rb_OUT[0];
 	int i=0;
 	if ( xferred < ringbuffer_free(rb)) {
 		while ( xferred-- ) ringbuffer_addchar(rb, usbRxBuffer[usbRxIndex][i++]);
@@ -404,8 +407,8 @@ static void SendRBtoHost() {
 	if ( ! clientAttached ) return;
 
 	int i = 0;
- 	while( ringbuffer_used(&rb_IN) ) {
-		usbTxBuffer0[i++] = ringbuffer_getchar(&rb_IN);
+ 	while( ringbuffer_used(&rb_IN[0]) ) {
+		usbTxBuffer0[i++] = ringbuffer_getchar(&rb_IN[0]);
 		}
 	if ( i ) {
 		usbTxActive[0] = true;
@@ -490,7 +493,7 @@ static void RingTxBite(RINGBUF *rb, volatile bool *txflag) {
 // when the outgoing ringbuffer starts getting full, or after 
 // a timeout. This routine is our callback. 
 static void RingTXCheck(void) {
-	RINGBUF *rb = &rb_IN;
+	RINGBUF *rb = &rb_IN[0];
 	volatile bool *active = &usbTxActive[0];
 		
 	int used = ringbuffer_used(rb);
@@ -510,7 +513,7 @@ static void CheckAndSend(int free) {
 int USBPutChar(int usbstream, uint8_t c) {
 	count_syscalls_putchar[usbstream]++;
 	
-	RINGBUF *rb = &rb_IN;
+	RINGBUF *rb = &rb_IN[0];
 	volatile bool *active = &usbTxActive[usbstream];
 	if ( *active ) { // If there is xmission going on...
 		return(ringbuffer_addchar(rb,c));
@@ -528,7 +531,7 @@ int USBPutChar(int usbstream, uint8_t c) {
 // Implement the SAPI Calls.
 uint32_t USBGetChar(uint32_t usbstream, long *tcb) {
 	count_syscalls_getchar[usbstream]++;
-	RINGBUF *rb = &rb_OUT;
+	RINGBUF *rb = &rb_OUT[0];
 	if ( ringbuffer_used(rb) ) return(ringbuffer_getchar(rb));
 	else {
 		if ( tcb ) {
@@ -543,7 +546,7 @@ int USBPutString(int usbstream, int len, uint8_t *p,  unsigned long *tcb) {
 	count_syscalls_putstring[usbstream]++;
 	count_syscalls_putstring_bytes[usbstream] += len;
 	
-	RINGBUF *rb = &rb_IN;
+	RINGBUF *rb = &rb_IN[0];
 	int free = ringbuffer_free(rb);
 	
 	if ( len > free ) len = free; // Don't over-flow the buffer.
@@ -566,7 +569,7 @@ int USBPutString(int usbstream, int len, uint8_t *p,  unsigned long *tcb) {
 int USBOutEOL(uint32_t usbstream, long *tcb) {
 	count_syscalls_eol[usbstream]++;
 
-	RINGBUF *rb = &rb_IN;
+	RINGBUF *rb = &rb_IN[0];
 	int free = ringbuffer_free(rb);
 	if  ( free >= 2 ) {
 		ringbuffer_addchar(rb,13);
@@ -589,7 +592,7 @@ int USBOutEOL(uint32_t usbstream, long *tcb) {
 	}
 
 uint32_t USBGetCharAvail(uint32_t usbstream) {
-	RINGBUF *rb = &rb_OUT;	
+	RINGBUF *rb = &rb_OUT[0];	
 	return( ringbuffer_used(rb));
 	}
 
