@@ -27,8 +27,14 @@
 
 #include "ringbuffer.h"
 
+#define CHANNELS 2
+
 RINGBUF rb_IN;
 RINGBUF rb_OUT;
+
+// We need to look up endpoint numbers. 
+int ep_IN[CHANNELS];
+int ep_OUT[CHANNELS];
 
 // The most we'll buffer before a packet to the host.
 // This should be big enough to hold all of the startup messages.
@@ -218,8 +224,11 @@ static bool clientAttached;
  *****************************************************************************/
 void CDC_Init( void )
 {
-  ringbuffer_init(&rb_IN,rb_storage_in,RBPAYLOAD_IN);
-  ringbuffer_init(&rb_OUT,rb_storage_out,RBPAYLOAD_OUT);
+	ep_IN[0] = CDC_EP_DATA_IN;
+	ep_OUT[0] = CDC_EP_DATA_OUT;
+
+	ringbuffer_init(&rb_IN,rb_storage_in,RBPAYLOAD_IN);
+	ringbuffer_init(&rb_OUT,rb_storage_out,RBPAYLOAD_OUT);
 }
 
 /**************************************************************************//**
@@ -337,7 +346,7 @@ void CDC_StateChangeEvent( USBD_State_TypeDef oldState,
     /* Start receiving data from USB host. */
     usbRxIndex  = 0;
     usbRxActive = true;
-    USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
+    USBD_Read(ep_OUT[0], (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
 	// Don't trigger a send just yet.   The client may not be ready.
 	// USBTIMER_Start(CDC_TIMER_ID, 5, RingbufferSweep);
@@ -403,7 +412,7 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 	// next time we get polled.    
     usbRxIndex ^= 1; // Switch to the other one.
     /* Start a new USB receive transfer. */
-    USBD_Read(CDC_EP_DATA_OUT, (void*) usbRxBuffer[ usbRxIndex ],
+    USBD_Read(ep_OUT[0], (void*) usbRxBuffer[ usbRxIndex ],
               CDC_USB_RX_BUF_SIZ, UsbDataReceivedU0);
 
 	// int leds = BSP_LedsGet();
@@ -422,7 +431,7 @@ static void SendRBtoHost() {
 		}
 	if ( i ) {
 		usbTxActive[0] = true;
-		USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
+		USBD_Write(ep_IN[0], (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
 		count_usb_xmit_packets++;
 		count_usb_xmit_bytes += i;		
 		}
@@ -496,7 +505,7 @@ static void RingTxBite(RINGBUF *rb, volatile bool *txflag) {
 	*txflag = true;
 	count_usb_xmit_packets++;
 	count_usb_xmit_bytes += i;			
-	USBD_Write(CDC_EP_DATA_IN, (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
+	USBD_Write(ep_IN[0], (void*) usbTxBuffer0, i, UsbDataTransmittedU0);
 	}
 
 // The most effient way to handle things is to do a transmission
