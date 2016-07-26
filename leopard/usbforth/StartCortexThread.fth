@@ -56,6 +56,10 @@ internal
 ;
 external
 
+\ -----------------------------------------------------
+\ Define the Cortex-M vectors.  
+\ For a client application, we only need two.
+\ -----------------------------------------------------
 INIT-R0 StackVec# SetExcVec	\ Define initial return stack
 ' StartCortex ResetVec# SetExcVec	\ Define startup word
 
