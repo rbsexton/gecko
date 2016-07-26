@@ -190,11 +190,14 @@ void RTC_IRQHandler(void)
 // See if there is a character in the LEUART buffer and echo it back.
 
 void CheckandEcho() {
-	if ( LEUART0->STATUS & LEUART_STATUS_RXDATAV ) {
-		LEUART0->TXDATA = LEUART0->RXDATA;
+	if ( theshareddata.u0rxdata >= 0 ) {
+		LEUART0->TXDATA = theshareddata.u0rxdata;
+		theshareddata.u0rxdata = -1;
+	}
+	//if ( LEUART0->STATUS & LEUART_STATUS_RXDATAV ) {
+	//	LEUART0->TXDATA = LEUART0->RXDATA;
 		
 		// LEUART_Tx(LEUART0,LEUART0->RXDATA);
-	}
 }
 
 /**************************************************************************//**
