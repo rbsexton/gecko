@@ -157,8 +157,8 @@ void setupRtc(void)
   RTC_Init(&rtcInit);
 
   /* Set RTC compare value */
-  rtcCountBetweenWakeup = ((SystemLFXOClockGet() * WAKEUP_INTERVAL_MS) / 1000);
-  RTC_CompareSet(0, rtcCountBetweenWakeup);
+  // 2047 = 16Hz.   Tune down as required.
+  RTC_CompareSet(0, 2047);
 
   /* Enable RTC interrupt from COMP0 */
   RTC_IntEnable(RTC_IF_COMP0);
@@ -170,10 +170,19 @@ void setupRtc(void)
   RTC_Enable(true);
 }
 
+// The State variable.
+uint32_t rtc_increment;
+
 void RTC_IRQHandler(void)
 {
   /* Clear interrupt source */
   RTC_IntClear(RTC_IFC_COMP0);
+ 
+  // Do a tick-tock so that we get 62.5ms on average
+  if ( rtc_increment & 1 ) rtc_increment = 62;
+  else rtc_increment = 63;
+
+  theshareddata.ticks += rtc_increment;
 }
 
 

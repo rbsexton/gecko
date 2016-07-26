@@ -10,7 +10,7 @@
 #include "interconnect.h"
 
 tSharedData theshareddata __attribute__ ((section(".shareddata"))) = {
-	0,0
+	0,0,0
  	};
 
 // Lie!

@@ -10,6 +10,7 @@
 typedef struct {
 	uint32_t jumptable;
 	uint32_t u0rxdata;
+	uint32_t ticks;
 } tSharedData;
 
 extern tSharedData theshareddata;
