@@ -13,6 +13,7 @@
  *
  ******************************************************************************/
 #include <stdint.h>
+#include <string.h>
 
 #include "em_device.h"
 #include "em_common.h"
@@ -229,9 +230,17 @@ void CDC_Init( void )
  *         USB_STATUS_REQ_UNHANDLED when command is unknown, the USB device
  *         stack will handle the request.
  *****************************************************************************/
+
+static int setup_snap_len;
+static USB_Setup_TypeDef setup_snap;
+
 int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
 {
   int retVal = USB_STATUS_REQ_UNHANDLED;
+
+  // Make a copy for later examination.
+	setup_snap_len = sizeof( USB_Setup_TypeDef);
+	memcpy((void *) &setup_snap, setup, setup_snap_len);
 
   if ( ( setup->Type      == USB_SETUP_TYPE_CLASS          ) &&
        ( setup->Recipient == USB_SETUP_RECIPIENT_INTERFACE )    )
