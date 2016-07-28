@@ -100,8 +100,7 @@ override CFLAGS += -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m0plus -mthumb \
 -ffunction-sections -fdata-sections -fomit-frame-pointer \
 -DDEBUG_EFM  $(DEPFLAGS)
 
-override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m0plus -mthumb -DDEBUG_EFM 
-
+override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m0plus -mthumb -DDEBUG_EFM -D__STACK_SIZE=0x80
 #
 # NOTE: The -Wl,--gc-sections flag may interfere with debugging using gdb.
 #
