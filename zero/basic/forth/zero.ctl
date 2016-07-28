@@ -225,7 +225,8 @@ external
 \ *******************
 
 include %AppDir%/interconnect
-include %DriverDir%/serLE_pi \ polled serial driver
+\ include %DriverDir%/serLE_pi \ serial driver that used the interconnect bits.
+include %DriverDir%/serLE_p \ polling serial driver
 
 \ include %AppDir%/startup
 ' hex AtCold

@@ -128,9 +128,9 @@ void LEUART0_IRQHandler(void) {
 	uint32_t leuartif = LEUART_IntGet(LEUART0);
  	LEUART_IntClear(LEUART0, leuartif);
   
-	if ( leuartif & LEUART_IEN_RXDATAV ) {
-		theshareddata.u0rxdata = LEUART0->RXDATAX;
-	}
+	// if ( leuartif & LEUART_IEN_RXDATAV ) {
+	//		theshareddata.u0rxdata = LEUART0->RXDATAX;
+	// }
   	count_leuart_irqs++;
 }
 
@@ -243,7 +243,7 @@ int main(void)
 
   SayHello();
 
-LaunchUserAppNoNVIC( (long unsigned int *) 0x2000);
+  LaunchUserAppNoNVIC( (long unsigned int *) 0x2000);
 
   // Lets just do echo.
   while (1)
