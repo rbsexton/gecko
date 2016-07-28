@@ -228,8 +228,10 @@ include %AppDir%/interconnect
 \ include %DriverDir%/serLE_pi \ serial driver that used the interconnect bits.
 include %DriverDir%/serLE_p \ polling serial driver
 
-\ include %AppDir%/startup
-' hex AtCold
+include %AppDir%/startup
+\ ' hex AtCold
+
+' startapp AtCold
 
 \ ***************
 \ *S Finishing up
