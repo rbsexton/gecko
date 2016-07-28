@@ -212,7 +212,7 @@ internal
 
 : .CPU		\ -- ; display CPU type
   ." MPE ROM PowerForth for Cortex-M0" cr
-  version$ $. space BuildDate$ $.
+  BuildDate$ $. space  [char] v emit version$ $. 
 ;
 external
 
