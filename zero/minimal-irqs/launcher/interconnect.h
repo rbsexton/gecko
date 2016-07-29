@@ -7,24 +7,11 @@
 
 #include <stdint.h>
 
-#ifndef __TIMEKEEPING_H__
-#include "timekeeping.h"
-#endif
-
 typedef struct {
 	uint32_t *jumptable;
 	uint32_t u0rxdata;
 	
 	uint32_t ticks;
-
-	sTimeHMS *tod_traditional;
-	sTimeHMS *tod_decimal;
-	
-	uint32_t pwmcalibrate; // One bit for each PWM source.
-	
-	uint32_t count_a_sec;
-	uint32_t count_a_min;
-	uint32_t count_a_h;
 
 } tSharedData;
 

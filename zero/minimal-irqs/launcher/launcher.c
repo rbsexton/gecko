@@ -32,12 +32,7 @@
 #include "em_pcnt.h"
 
 #include "bl_launcher.h"
-#include "timekeeping.h"
 #include "interconnect.h"
-#include "bresenham.h"
-
-#include "ui.h"
-#include "display.h"
 
 /* DEFINES */
 
@@ -173,139 +168,26 @@ void CheckandEcho() {
  * LEUART DMA request to wake up the DMA. 
  *
  *****************************************************************************/
-void LEDUpdate() {
-	// First, consider the LEDs.
-	if(GPIO_PinInGet(gpioPortC, 10) ) GPIO_PinOutClear(gpioPortC, 10);   /* Drive high PD8 */ 
-	else GPIO_PinOutSet(gpioPortC, 10); /* Drive low PD8 */
-	}
-
-void PWMUpdate(int a, int b, int c) {
-	if ( ! (theshareddata.pwmcalibrate & 0x1) ) TIMER_CompareBufSet(TIMER1,0,a);
-	if ( ! (theshareddata.pwmcalibrate & 0x2) ) TIMER_CompareBufSet(TIMER1,1,b);
-	if ( ! (theshareddata.pwmcalibrate & 0x4) ) TIMER_CompareBufSet(TIMER1,2,c);
-	}	
-
-static bool rtc_ditherstate = false;
 
 // -----------------------------------------------------------------
 // This drives everything in this system.
 // -----------------------------------------------------------------
+char rtc_off;
 void RTC_IRQHandler(void) {
  	/* Clear interrupt source */
  	RTC_IntClear(RTC_IFC_COMP0);
 
-	// These two generate all display data.   The UI code 
-	// Decides whether or not to use it.
-	TimeUpdate();
-	DTimeUpdate();
-
-	UpdateInputs( (GPIO->P[gpioPortC].DIN & 0x8000) == 0 );
-	UIStateUpdate();
-	NeedleUpdate();
-	
 	// Generate a ms ticker.   1000/16 = 62.5.  So add 63 very other time.
 
-	rtc_ditherstate = ! rtc_ditherstate;
-	if ( rtc_ditherstate ) theshareddata.ticks += 62;
-	else theshareddata.ticks += 63;
+	if ( rtc_off & 1 ) {
+		rtc_off = 62;
+	}
+	else { 
+		rtc_off = 63;
+	}
+
+	theshareddata.ticks += rtc_off;
     }
-
-/**************************************************************************//**
- * @brief Initialize the timer.
- * 
- * THe zero gecko board has Timer1 CC1 on Pin4/PD7 - Location 4.
- *****************************************************************************/
-const TIMER_Init_TypeDef timerInit =
- {
-   .enable     = true,
-   .debugRun   = true,
-   .prescale   = timerPrescale1,
-   .clkSel     = timerClkSelHFPerClk,
-   .fallAction = timerInputActionNone,
-   .riseAction = timerInputActionNone,
-   .mode       = timerModeUp,
-   .dmaClrAct  = false,
-   .quadModeX4 = false,
-   .oneShot    = false,
-   .sync       = false,
- };
-
-const TIMER_InitCC_TypeDef timerCCInit = 
-{
-  .eventCtrl  = timerEventEveryEdge,
-  .edge       = timerEdgeBoth,
-  .prsSel     = timerPRSSELCh0,
-  .cufoa      = timerOutputActionNone,
-  .cofoa      = timerOutputActionSet,
-  .cmoa       = timerOutputActionClear,
-  .mode       = timerCCModePWM,
-  .filter     = false,
-  .prsInput   = false,
-  .coist      = false,
-  .outInvert  = false,
-};
-
-void setupTimers() {
-  /* Configure CC channels 0 & 1 */
-  TIMER_InitCC(TIMER1, 0, &timerCCInit);
-  TIMER_InitCC(TIMER1, 1, &timerCCInit);
-  TIMER_InitCC(TIMER1, 2, &timerCCInit);
-
-  /* Route CC1 to location 3 (PD1) and enable pin */  
-  TIMER1->ROUTE |= (TIMER_ROUTE_CC0PEN | TIMER_ROUTE_CC1PEN | TIMER_ROUTE_CC2PEN |\
- 					TIMER_ROUTE_LOCATION_LOC4); 
-  
-  TIMER_TopSet(TIMER1, 999);  /* Set Top Value */
-
-  TIMER_CompareBufSet(TIMER1, 0, 0);  /* Set compare value  */
-  TIMER_CompareBufSet(TIMER1, 1, 0);  /* Set compare value  */
-  TIMER_CompareBufSet(TIMER1, 2, 0);  /* Set compare value  */
-
-  /* Configure timer */
-  TIMER_Init(TIMER1, &timerInit);
-}
-
-/**************************************************************************//**
- * @brief Initialize the pulse counter that we use for Quadrature.
- * 
- *****************************************************************************/
-void setupPulseCounter() {
-	PCNT_Init_TypeDef pcntInit =
-  {
-    .mode       = pcntModeExtQuad,    /* clocked by PCNT1_S0IN */
-    .counter    = 0x4000,             /* Set initial value to 0 */
-    .top        = 0x8000,             /* Set top to max value */
-    .negEdge    = false,              /* positive edges */
-    .countDown  = false,              /* up count */
-    .filter     = false,               /* filter enabled */
-
-    pcntPRSCh0,                               /* PRS channel 0 selected as S0IN. */              \
-    pcntPRSCh0                                /* PRS channel 0 selected as S1IN. */              \
-
-  };
-
-  /* Initialize Pulse Counter */
-  PCNT_Init(PCNT0, &pcntInit);
-
-  /* Enable PCNT direction change interrupt */
-  // PCNT_IntEnable(PCNT1, PCNT_IF_DIRCNG);
-
-  /* Enable PCNT1 interrupt vector in NVIC */
-  // NVIC_EnableIRQ(PCNT1_IRQn);
-
-  /* PRS setup */
-  /* Select GPIO as source and PD0 as signal 
-     The GPIO generates a level signal and the
-     UART consumes a pulse so we have to use
-     the edge detector to generate the pulse */
-  PRS_SourceSignalSet(0, PRS_CH_CTRL_SOURCESEL_GPIOL, PRS_CH_CTRL_SIGSEL_GPIOPIN0, prsEdgeOff);
-  PRS_SourceSignalSet(1, PRS_CH_CTRL_SOURCESEL_GPIOL, PRS_CH_CTRL_SIGSEL_GPIOPIN1, prsEdgeOff);
-
-	PCNT_PRSInputEnable(PCNT0, pcntPRSCh0, true);
-	PCNT_PRSInputEnable(PCNT0, pcntPRSCh1, true);
-	
-}
-
 
 /**************************************************************************//**
  * @brief Initialize the GPIOs.
@@ -315,19 +197,6 @@ void setupPulseCounter() {
 void setupGPIO() {	
   /* Configure PC10 as push pull output */
   GPIO_PinModeSet(gpioPortC, 10, gpioModePushPullDrive, 0); // LED.
-  GPIO_PinModeSet(gpioPortC, 13, gpioModePushPullDrive, 0); // Timer1 CC2
-  GPIO_PinModeSet(gpioPortD,  6, gpioModePushPullDrive, 0); // Timer1 CC0
-  GPIO_PinModeSet(gpioPortD,  7, gpioModePushPullDrive, 0); // Timer1 CC1
-
-  GPIO_PinModeSet(gpioPortA, 0, gpioModeInput, 0); // GPIO Input
-  GPIO_PinModeSet(gpioPortA, 1, gpioModeInput, 0); // GPIO Input
-
-  /* Enable PRS sense on GPIO and disable interrupt sense */
-  // This is just two bits in a register.
-  GPIO_InputSenseSet(GPIO_INSENSE_PRS, _GPIO_INSENSE_RESETVALUE);
-
-  GPIO_PinModeSet(gpioPortC, 15, gpioModeInputPull, 0); // GPIO Input
-	GPIO->P[gpioPortC].DOUT = 0x8000;
 }
 
 /**************************************************************************//**
@@ -350,9 +219,6 @@ int main(void)
   CHIP_Init();
 
   InitSharedData();
-  timekeeping_init();
-  ui_init();		
-  display_init();
 
   /* Start LFXO, and use LFXO for low-energy modules */
   CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
@@ -371,9 +237,6 @@ int main(void)
   CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
-  CMU_ClockEnable(cmuClock_TIMER1, true);
-  CMU_ClockEnable(cmuClock_PCNT0, true);
-  CMU_ClockEnable(cmuClock_PRS, true);
    
   /* Re-config the HFRCO to the low band */
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
@@ -385,10 +248,8 @@ int main(void)
   initLeuart();
 
   /* Setup RTC as interrupt source */
-  	setupRtc();
-	setupTimers();
-	setupGPIO();
-	setupPulseCounter();
+ setupRtc();
+setupGPIO();
 
 SayHello();
 
