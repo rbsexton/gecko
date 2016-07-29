@@ -88,7 +88,7 @@ internal
 \ ** hardware initialisation can also be performed here.
   begin
     DI
-    INT_STACK_TOP SP_main sys!		\ set SP_main for interrupts
+    \ INT_STACK_TOP SP_main sys!		\ set SP_main for interrupts
     INIT-R0 SP_process sys!		\ set SP_process for tasks
     2 control sys!			\ switch to SP_process
     REAL-INIT-S0 set-sp			\ Allow for cached TOS and guard space
@@ -99,7 +99,7 @@ internal
 ;
 external
 
-INT_STACK_TOP StackVec# SetExcVec	\ Define initial return stack
+0 StackVec# SetExcVec	\ Define initial return stack
 ' StartCortex ResetVec# SetExcVec	\ Define startup word
 DefExc2       2         SetExcVec
 DefExc3       3         SetExcVec

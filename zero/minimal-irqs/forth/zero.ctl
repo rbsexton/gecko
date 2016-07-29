@@ -107,7 +107,7 @@ up-size rp-size + sp-size +
 $080 equ TIB-LEN		\ terminal i/p buffer length
 
 \ define nesting levels for interrupts and SWIs.
-1 equ #IRQs			\ number of IRQ stacks,
+0 equ #IRQs			\ number of IRQ stacks,
 				\ shared by all IRQs (1 min)
 0 equ #SVCs			\ number of SVC nestings permitted
 				\ 0 is ok if SVCs are unused

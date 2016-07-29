@@ -255,7 +255,7 @@ SayHello();
 
 GPIO_PinOutSet(gpioPortC, 10);   /* Drive high PD8 */ 
 
-LaunchUserAppNoNVIC( (long unsigned int *) 0x3000);
+LaunchUserAppNoSPNoNVIC( (long unsigned int *) 0x3000);
 
   // Lets just do echo.
   while (1)
