@@ -172,12 +172,6 @@ cell equ cell				\ size of a cell (16 bits)
   \ include %CpuDir%/LocalCM3		\ local variables
  
 
-  \ include %SPDir%/SAPI-Core     	\ Core SAPI functions.
-  \ include %SPDir%/dylink     		\ Runtime Linking
-
-  \ include %LocalCM3%/bitband
-  \ include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
-
 timebase? [if]
   include %CommonDir%/timebase		\ time base common code, MUST be before SysTickxxx
   include %CommonDir%/Delays		\ time delays
@@ -217,21 +211,15 @@ external
 : ANS-FORTH	\ -- ; marker
 ;
 
-
 \ *******************
 \ *S Application code
 \ *******************
-
-vocabulary clock
 
 include %AppDir%/interconnect
 include %AppDir%/Delays
 include %DriverDir%/serLE_pi \ polled serial driver
 include %AppDir%/ZeroGecko		\ Various Addresses
 
-only forth also clock definitions
-
-include %AppDir%/clock
 include %AppDir%/startup
 
 \ ' hex AtCold
