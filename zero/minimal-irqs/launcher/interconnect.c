@@ -9,7 +9,8 @@
 
 #include "interconnect.h"
 
-tSharedData theshareddata __attribute__ ((section(".shareddata")));
+tSharedData theshareddata __attribute__ ((section(".shareddata"))) = 
+ 	{ 0,-1,0};
 
 // Lie!
 extern void EMU_EnterEM2();

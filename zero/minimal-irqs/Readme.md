@@ -8,6 +8,6 @@ There is a small table of shared data at the very beginning
 of memory.
 
 The top level contains a build.sh script that compiles the
-launcher and the forth, and combines them together into a combined
-binary.
+launcher and the forth, and combines them together into a
+single binary.
 
