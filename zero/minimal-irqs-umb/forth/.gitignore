@@ -1,0 +1,6 @@
+*.img
+*.XRF
+*.no
+Cortex/*.fth
+Common/*.fth
+
