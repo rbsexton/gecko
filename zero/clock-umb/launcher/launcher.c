@@ -199,6 +199,72 @@ void setupGPIO() {
   GPIO_PinModeSet(gpioPortC, 10, gpioModePushPullDrive, 0); // LED.
 }
 
+
+/**************************************************************************//**
+ * @brief Initialize the timer.
+ * 
+ * THe zero gecko board has Timer1 CC1 on Pin4/PD7 - Location 4.
+ *****************************************************************************/
+#define TIMER_CHOICE TIMER0
+const TIMER_Init_TypeDef timerInit =
+ {
+   .enable     = true,
+   .debugRun   = true,
+   .prescale   = timerPrescale1,
+   .clkSel     = timerClkSelHFPerClk,
+   .fallAction = timerInputActionNone,
+   .riseAction = timerInputActionNone,
+   .mode       = timerModeUp,
+   .dmaClrAct  = false,
+   .quadModeX4 = false,
+   .oneShot    = false,
+   .sync       = false,
+ };
+
+const TIMER_InitCC_TypeDef timerCCInit = 
+{
+  .eventCtrl  = timerEventEveryEdge,
+  .edge       = timerEdgeBoth,
+  .prsSel     = timerPRSSELCh0,
+  .cufoa      = timerOutputActionNone,
+  .cofoa      = timerOutputActionSet,
+  .cmoa       = timerOutputActionClear,
+  .mode       = timerCCModePWM,
+  .filter     = false,
+  .prsInput   = false,
+  .coist      = false,
+  .outInvert  = false,
+};
+
+void setupTimers() {
+  /* Configure CC channels 0 & 1 */
+  TIMER_InitCC(TIMER_CHOICE, 0, &timerCCInit);
+  TIMER_InitCC(TIMER_CHOICE, 1, &timerCCInit);
+  TIMER_InitCC(TIMER_CHOICE, 2, &timerCCInit);
+
+  /* Route CC1 to location 3 (PD1) and enable pin */  
+  TIMER_CHOICE->ROUTE |= (
+		TIMER_ROUTE_CC0PEN |TIMER_ROUTE_CC1PEN |TIMER_ROUTE_CC2PEN |\
+ 		TIMER_ROUTE_LOCATION_LOC0); 
+
+  // TIMER_CHOICE->ROUTE |= (TIMER_ROUTE_CC0PEN | TIMER_ROUTE_CC1PEN | TIMER_ROUTE_CC2PEN |
+  //		 					TIMER_ROUTE_LOCATION_LOC4); 
+  
+  TIMER_TopSet(TIMER_CHOICE, 999);  /* Set Top Value */
+
+  TIMER_CompareBufSet(TIMER_CHOICE, 0, 0);  /* Set compare value  */
+  TIMER_CompareBufSet(TIMER_CHOICE, 1, 0);  /* Set compare value  */
+  TIMER_CompareBufSet(TIMER_CHOICE, 2, 0);  /* Set compare value  */
+
+  /* Configure timer */
+  TIMER_Init(TIMER_CHOICE, &timerInit);
+
+  GPIO_PinModeSet(gpioPortA,  0, gpioModePushPullDrive, 0); // Timer1 CC2
+  GPIO_PinModeSet(gpioPortA,  1, gpioModePushPullDrive, 0); // Timer1 CC0
+  GPIO_PinModeSet(gpioPortC, 13, gpioModePushPullDrive, 0); // Timer1 CC1
+
+}
+
 /**************************************************************************//**
  * @brief  Main function
  *
@@ -237,6 +303,8 @@ int main(void)
   CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
+  //CMU_ClockEnable(cmuClock_TIMER1, true);
+  CMU_ClockEnable(cmuClock_TIMER0, true);
    
   /* Re-config the HFRCO to the low band */
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
@@ -248,8 +316,10 @@ int main(void)
   initLeuart();
 
   /* Setup RTC as interrupt source */
- setupRtc();
-setupGPIO();
+	setupRtc();
+	setupGPIO();
+	setupTimers();
+
 
 SayHello();
 
