@@ -187,6 +187,8 @@ void RTC_IRQHandler(void) {
 	}
 
 	theshareddata.ticks += rtc_off;
+	theshareddata.rtc_sem++;
+	
     }
 
 /**************************************************************************//**

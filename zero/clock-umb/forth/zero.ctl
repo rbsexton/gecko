@@ -258,6 +258,7 @@ umbilical? [if]
 \ *S Application code
 \ *******************
 
+include %AppDir%/Clock
 
 : App           \ -- ; N.B. remove INIT-SER for interactive testing
 [ init-idata? ] [if]  init-idata  [then]
@@ -290,6 +291,7 @@ umbilical? [if]
 libraries       \ to resolve common forward references
  include %CpuDir%/LibM0M1
  include %CommonDir%/ufLib
+ include %LocalCM3%/CortexM0Atomic
 end-libs
 
 \ Force binary file to 512 byte unit.

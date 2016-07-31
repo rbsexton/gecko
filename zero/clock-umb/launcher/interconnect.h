@@ -12,6 +12,7 @@ typedef struct {
 	int32_t u0rxdata;
 	
 	uint32_t ticks;
+	uint32_t rtc_sem;
 
 } tSharedData;
 

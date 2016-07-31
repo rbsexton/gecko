@@ -7,6 +7,7 @@ struct /INTER	\ -- size
 	ptr inter.jumptable
 	ptr u0rxdata 
 	int inter.ticks 
+	int inter.rtcsem \ The RTC increments this every time. 
 end-struct
 
 : ticks icroot inter.ticks @ ; 
