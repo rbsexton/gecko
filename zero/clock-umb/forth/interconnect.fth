@@ -8,6 +8,7 @@ struct /INTER	\ -- size
 	ptr u0rxdata 
 	int inter.ticks 
 	int inter.rtcsem \ The RTC increments this every time. 
+	int inter.rtcdsem  
 end-struct
 
 : ticks icroot inter.ticks @ ; 

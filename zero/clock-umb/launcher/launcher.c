@@ -173,6 +173,7 @@ void CheckandEcho() {
 // This drives everything in this system.
 // -----------------------------------------------------------------
 char rtc_off;
+int err; 
 void RTC_IRQHandler(void) {
  	/* Clear interrupt source */
  	RTC_IntClear(RTC_IFC_COMP0);
@@ -188,6 +189,13 @@ void RTC_IRQHandler(void) {
 
 	theshareddata.ticks += rtc_off;
 	theshareddata.rtc_sem++;
+	
+	// Generate the Dsecond increments.
+	err -= 1000000;
+	if ( err < 0 ) {
+		err += 1382400; // 86400 * 16
+		theshareddata.rtc_dsem++;
+	}
 	
     }
 
