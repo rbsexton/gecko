@@ -1,5 +1,5 @@
 /// *************************************************************************
-/// * @file launcher.c
+/// * @file launcher.c for second-generation clock.
 /// * @brief Timer Drivers
 /// 
 /// Pinout for the eval board. 
@@ -17,6 +17,9 @@
 /// T0CC0/PA0/Header
 /// T0CC1/PA1/Header
 /// PC15 /Pin 8 - Switch
+///
+/// Encoder Pinout - Common is on the top center.  Switch is orange.
+
 /// *************************************************************************
 
 #include "em_chip.h"
@@ -275,6 +278,44 @@ void setupTimers() {
 
 }
 
+// ------------------------------------------------------
+// Set up Quadrature mode on Timer1 
+// Timer1CC0 - PC6
+// Timer1CC1 - PD7
+// ------------------------------------------------------
+const TIMER_Init_TypeDef timerQuadInit =
+ {
+   .enable     = true,
+   .debugRun   = true,
+   .prescale   = timerPrescale1,
+   .clkSel     = timerClkSelHFPerClk,
+   .fallAction = timerInputActionNone,
+   .riseAction = timerInputActionNone,
+   .mode       = timerModeQDec,
+   .dmaClrAct  = false,
+   .quadModeX4 = false,
+   .oneShot    = false,
+   .sync       = false,
+ };
+
+void setupTimerQuad() {
+  TIMER1->ROUTE |= (
+		TIMER_ROUTE_CC0PEN | TIMER_ROUTE_CC1PEN |\
+ 		TIMER_ROUTE_LOCATION_LOC4 ); 
+
+  // TIMER_CHOICE->ROUTE |= (TIMER_ROUTE_CC0PEN | TIMER_ROUTE_CC1PEN | TIMER_ROUTE_CC2PEN |
+  //		 					TIMER_ROUTE_LOCATION_LOC4); 
+  
+  /* Configure timer */
+  TIMER_Init(TIMER1, &timerQuadInit);
+
+  GPIO_PinModeSet(gpioPortD, 6,gpioModeInputPull,1); // Timer1 CC0
+  GPIO_PinModeSet(gpioPortD, 7,gpioModeInputPull,1); // Timer1 CC1
+
+}
+
+
+
 /**************************************************************************//**
  * @brief  Main function
  *
@@ -315,6 +356,7 @@ int main(void)
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
   //CMU_ClockEnable(cmuClock_TIMER1, true);
   CMU_ClockEnable(cmuClock_TIMER0, true);
+  CMU_ClockEnable(cmuClock_TIMER1, true);
    
   /* Re-config the HFRCO to the low band */
   CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
@@ -329,6 +371,7 @@ int main(void)
 	setupRtc();
 	setupGPIO();
 	setupTimers();
+	setupTimerQuad();
 
 
 SayHello();
