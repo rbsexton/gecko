@@ -210,6 +210,9 @@ void RTC_IRQHandler(void) {
 void setupGPIO() {	
   /* Configure PC10 as push pull output */
   GPIO_PinModeSet(gpioPortC, 10, gpioModePushPullDrive, 0); // LED.
+
+  /* Configure PC0/Exp3 as a pulled input */
+  GPIO_PinModeSet(gpioPortC, 0,gpioModeInputPull,1); // PC0
 }
 
 
