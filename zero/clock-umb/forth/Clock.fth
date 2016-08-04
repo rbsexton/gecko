@@ -58,10 +58,10 @@ struct _HMS
 	int hms.m
 	int hms.h
 	int hms.maxsubsec \ Max Value for subseconds
-	int hms.maxs+m \ Max Value for secs+minutes
-	int hms.maxh   \ Max for hours
+	int hms.maxsec   \ Max Value for secs+minutes
+	int hms.maxhour   \ Max for hours
 	ptr hms.w_s    \ Increment the seconds value
-	ptr hms.w_mh   \ increment the minutes + hours
+	ptr hms.w_m    \ increment the minutes + hours
 end-struct
 
 idata
@@ -79,21 +79,25 @@ cdata
 \ each time this gets called.  
 \ If the seconds wrap, we update the minutes
 \ and the hours.
+\ UNTESTED
 : ADVANCETIME ( struct-addr -- )
-  ++needle_s  1 over hms.subsec +!
-   dup hms.subsec @ #16 < if drop exit then
+  dup hms.w_s @ execute \ Invoke the official update word.
+  1 over hms.subsec +!  \ Increment
+   dup hms.subsec @
+   over hms.maxsubsec @ < if drop exit then \ If less then max, we're done
   0 over hms.subsec ! \ Reset the subsecs 
 
-  ++needle_m 1 over hms.s +!
-   dup hms.s @ #60 < if drop exit then 
+  dup hms.w_m @ execute
+  1 over hms.s +!
+   dup hms.s @ over hms.maxsec @ < if drop exit then 
   0 over hms.s ! \ Reset the seconds
 
   1 over hms.m +!
-   dup hms.m @ #60 < if drop exit then 
+   dup hms.m @ over hms.maxsec @ < if drop exit then 
   0 over hms.m ! \ Reset the minutes
 
   1 over hms.h +!
-   dup hms.h @ #24 < if drop exit then 
+   dup hms.h @ over hms.maxhour @ < if drop exit then 
   0 over hms.h ! \ Reset the minutes
 
   drop 
