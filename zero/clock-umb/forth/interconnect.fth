@@ -16,5 +16,7 @@ end-struct
 : ICFN@ ( index -- addr ) 4 * icroot @ + @ ; 
 : (MSC_ErasePage) 1 icfn@ ;  
 : (MSC_WriteWord) 2 icfn@ ; 
-
+: (interp_reset) 3 icfn@ ; 
+: (interp_init) 4 icfn@ ; 
+: (interp_next) 5 icfn@ ;
 

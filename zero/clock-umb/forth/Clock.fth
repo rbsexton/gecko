@@ -115,6 +115,32 @@ cdata
 
 \ : foo 0 do hms advancetime loop ; 
 
+\ ----------------------------------------------------------
+\ The interpolator.   
+\ Implement bresenhams algorithm.  All of this code already
+\ exists in C, but we'll own the data structures.  They contain
+\ A total of 4 words - fixed, err, num, & denom
+\ ----------------------------------------------------------
+
+udata 
+create interp_a 4 cells allot
+create interp_b 4 cells allot
+create interp_c 4 cells allot
+cdata
+
+#16  #60 * equ raw_sec
+#10 #100 * equ raw_dsec
+
+: INTERP-INIT ( -- )
+  (interp_init)
+  dup interp_a #850 raw_sec call3-- 
+  dup interp_b #850     #60 call3-- 
+      interp_c #850     #12 call3--
+;
+
+: INTERP-NEXT ( addr -- n )
+  (interp_next) swap call1--1
+
 \ ============================ UNTESTED =======================
 \ VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 

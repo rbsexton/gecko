@@ -11,6 +11,7 @@
 #include "em_device.h"
 #include "em_msc.h"
 
+#include "bresenham.h"
 #include "interconnect.h"
 
 tSharedData theshareddata __attribute__ ((section(".shareddata"))) = 
@@ -19,17 +20,17 @@ tSharedData theshareddata __attribute__ ((section(".shareddata"))) =
 // Lie!
 extern void EMU_EnterEM2();
 
-int addone(int i) { return(i+1); }
-int addtwo(int i, int j) { return(i+j); } 
-int addthree(int i, int j, int k ) { return(i+j+k); } 
+// int addone(int i) { return(i+1); }
+// int addtwo(int i, int j) { return(i+j); } 
+// int addthree(int i, int j, int k ) { return(i+j+k); } 
 
 void (* const jumptable[])(void) __attribute__ ((section(".jumptable"))) = {
 	EMU_EnterEM2,
 	MSC_ErasePage,
 	MSC_WriteWord,
-	addone,
-	addtwo,
-	addthree
+	interp_reset,
+	interp_init,
+	interp_next
 	};
 
 void InitSharedData() {
