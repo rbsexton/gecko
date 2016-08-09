@@ -8,28 +8,55 @@
          0 over inter.rtcdsem ! \ Reset the free-running counters.
 
   begin 
-   	dup inter.rtcsem  @offex! ?dup if hms advancetime then
-   	dup inter.rtcdsem @offex! ?dup if dhms advancetime then
+   	dup inter.rtcsem  @offex! ?dup if advancehms then
+   	dup inter.rtcdsem @offex! ?dup if advancedhms then
     [asm wfi asm]
     uiupdate if use-uivals else use-clockvals then 
   key? until drop
 ;
  
+\ These two contain loops to ensure that we don't
+\ drop any timer ticks on the floor.
+: ADVANCEHMS ( n -- ) 0 do hms advancetime loop ;
+: ADVANCEDHMS ( n -- ) 0 do dhms advancetime loop ;
+ 
 : LOAD-DEFAULTS ( -- )
   #1000 needlemax
   2dup ! 4 + 2dup ! 4 +  ! 
+  interp-init
 ;
 
 \ ----------------------------------------------------------
-\ Needle Management
+\ Define the structures before they get used.
 \ ----------------------------------------------------------
-struct ODN 
+struct ODN \ On-Deck Needle 
 	2 field odn.s
 	2 field odn.m
 	2 field odn.h
 end-struct
 
-udata
+struct _HMS
+	int hms.subsec
+	int hms.s
+	int hms.m
+	int hms.h
+	int hms.maxsubsec \ Max Value for subseconds
+	int hms.maxsec   \ Max Value for secs+minutes
+	int hms.maxhour   \ Max for hours
+	ptr hms.w_s    \ Increment the seconds value
+	ptr hms.w_m    \ increment the minutes + hours
+end-struct
+
+struct _interp_set
+	4 cells field interp.a
+	4 cells field interp.b
+	4 cells field interp.c
+end-struct
+
+\ ----------------------------------------------------------
+\ Needle Management
+\ ----------------------------------------------------------
+idata
 create NEEDLEMAX 3 cells allot
 create ODN_HMS  odn allot \ On-Deck, HMS
 create ODN_DHMS odn allot \ On-Deck, DHMS
@@ -40,15 +67,18 @@ cdata
 
 : ++NEEDLE_S \ Called every time.
     odn_hms    odn.s   \ Stash this address for the moment. 
+
 	interp_max odn.s @ \ Get the max 
 	over w@             \ Current value 
+
 	interp_hms interp.a interp-next + \ Returns a value.
 	
 	\ If we've wrapped to zero, reset the interpolator 
-	\ the zero resets on every needle sweep.
-    rangecheck ?dup if  interp_hms interp.a  interp-reset  then 
-    swap w! 
-;
+	\ so that we don't accumulate errors during setting/
+	\ calibration operations.
+    rangecheck dup  0= if  interp_hms interp.a  interp-reset  then 		
+	swap w! 
+	;
 
 : ++NEEDLE_DS ; \ Called every time.
 
@@ -94,18 +124,6 @@ _timer0 $54 + equ _PWM2
 \ ----------------------------------------------------------
 \ Keeping track of the time.
 \ ----------------------------------------------------------
-struct _HMS
-	int hms.subsec
-	int hms.s
-	int hms.m
-	int hms.h
-	int hms.maxsubsec \ Max Value for subseconds
-	int hms.maxsec   \ Max Value for secs+minutes
-	int hms.maxhour   \ Max for hours
-	ptr hms.w_s    \ Increment the seconds value
-	ptr hms.w_m    \ increment the minutes + hours
-end-struct
-
 idata
 create HMS  
   0 , 0 , 0 , 0 , \ Running Counters
@@ -162,12 +180,6 @@ cdata
 \ exists in C, but we'll own the data structures.  They contain
 \ A total of 4 words - fixed, err, num, & denom
 \ ----------------------------------------------------------
-struct _interp_set
-	4 cells field interp.a
-	4 cells field interp.b
-	4 cells field interp.c
-end-struct
-
 udata 
 create interp_hms  _interp_set allot
 create interp_dhms _interp_set allot 
