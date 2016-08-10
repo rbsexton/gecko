@@ -21,8 +21,6 @@
 : ADVANCEDHMS ( n -- ) 0 do dhms advancetime loop ;
  
 : LOAD-DEFAULTS ( -- )
-  #1000 needlemax
-  2dup ! 4 + 2dup ! 4 +  ! 
   interp-init
 ;
 
@@ -203,24 +201,19 @@ create interp_dhms _interp_set allot
 create adj_list #50 cells allot \ 100 16-bit words. 
 cdata
 
-\ Heres the default values.   These are universal.
-idata
-create interp_max #850 , #850 , #850 ,
-cdata
-
 #16  #60 * equ raw_sec
 #10 #100 * equ raw_dsec
 
 : INTERP-INIT ( -- )
   (interp_init) interp_hms
-  2dup interp.a interp_max     @ raw_sec call3-- 
-  2dup interp.b interp_max 4 + @     #60 call3-- 
-       interp.c interp_max 8 + @     #12 call3--
+  2dup interp.a needle_max     @ raw_sec call3-- 
+  2dup interp.b needle_max 4 + @     #60 call3-- 
+       interp.c needle_max 8 + @     #12 call3--
 
   (interp_init) interp_dhms
-  2dup interp.a interp_max     @  raw_dsec call3-- 
-  2dup interp.b interp_max 4 + @      #100 call3-- 
-       interp.c interp_max 8 + @       #10 call3--
+  2dup interp.a needle_max     @  raw_dsec call3-- 
+  2dup interp.b needle_max 4 + @      #100 call3-- 
+       interp.c needle_max 8 + @       #10 call3--
 ;
 
 \ Call the reset fn.
