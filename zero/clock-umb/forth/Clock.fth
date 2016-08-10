@@ -85,11 +85,9 @@ cdata
 : ++NEEDLE_M ; \ Every time we roll the seconds.
 : ++NEEDLE_DM ; \ Every time we roll the seconds.
 
-
-
 : _USE ( odn-addr -- ) 
   dup w@ pwm0!
-  2 + w@ pwm1!
+  dup 2 + w@ pwm1!
   4 + w@ pwm2!
   ;
 
