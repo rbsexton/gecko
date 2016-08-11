@@ -285,9 +285,11 @@ _GPIO $64  + equ _BUTTONIO
 0 4 * equ _s_init
 1 4 * equ _s_b1
 2 4 * equ _s_1sec
-3 4 * equ _s_seth
+
+3 4 * equ _s_set_h
 4 4 * equ _s_pendset_m
 5 4 * equ _s_setmin
+
 6 4 * equ _s_pendcal0
 7 4 * equ _s_cal0
 8 4 * equ _s_pendcalh
@@ -296,6 +298,9 @@ _GPIO $64  + equ _BUTTONIO
 11 4 * equ _s_calm
 12 4 * equ _s_pendcals
 13 4 * equ _s_cals
+
+4 equ downcount_1s
+16 equ downcount_3s 
 
 \ All of the state handlers.
 \ Everybody needs to know the state of the button, so that must
@@ -312,7 +317,7 @@ _GPIO $64  + equ _BUTTONIO
 : shB1 false
   buttonup? if _s_init uistate ! exit then
   \ The Button is down.  
-  uicount @ 16 > if
+  uicount @ downcount_1s >= if
     _s_1sec uistate !
     else 
     1 uicount +!
@@ -321,8 +326,8 @@ _GPIO $64  + equ _BUTTONIO
 
 \ We're in the 1 second state
 : sh1sec true 
-  buttonup? if _s_seth uistate ! true exit then
-  uicount @ 48 > if
+  buttonup? if _s_set_h uistate ! exit then
+  uicount @ downcount_3s >= if
     _s_pendcal0 uistate !
     else 
     1 uicount +!
@@ -356,6 +361,7 @@ create StateHandlers
 ' shInit , 
 ' shB1 ,
 ' sh1sec ,
+
 ' shSetH ,
 ' shPendSetM ,  ' shSetMin ,
 
