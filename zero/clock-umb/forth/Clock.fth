@@ -54,17 +54,28 @@ end-struct
 \ ----------------------------------------------------------
 \ Defaults get saved in the user data page.
 \ ----------------------------------------------------------
-
 : NVRAMVALID? ( addr -- t/f ) 
 \ *G See if there is valid data in the NVRAM.
 \ ** It consists of 3 words.  If any of them are 
 \ ** set to 0xffff:ffff, we go with the defaults.
-  dup      @ -1 = 
-  over 4 + @ -1 = or
-  swap 8 + @ -1 = or  
+  _USERDATA
+  dup      @ -1 <> 
+  over 4 + @ -1 <> and
+  swap 8 + @ -1 <> and
 ;
 
-: NVRAMLOAD ( addr -- ) $C 0 do dup I + @ needle_max I + ! 4 + loop ; 
+: _NVRAMLOAD ( -- ) 
+\ *G Pull the needle maximums from flash.
+  $C 0 do I ud@ needle_max I + !   4 +loop 
+; 
+
+: NVRAM! ( -- )
+\ *G Save the contents of the needle cal values.
+ 0 UDPAGE_ERASE
+ needle_max
+ $C 0 do dup I + @  I ud!  4 +loop
+ drop 
+;
 
 \ ----------------------------------------------------------
 \ Needle Management
