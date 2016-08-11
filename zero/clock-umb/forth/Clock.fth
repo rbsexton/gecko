@@ -335,7 +335,7 @@ _GPIO $64  + equ _BUTTONIO
 : shSetH true buttondown? if _s_pendset_m uistate ! exit then ;
 
 : shPendSetM true  buttonup? if _s_setmin uistate ! then ;
-: shSetMin true  buttondown? if _s_pendset_m uistate ! exit then ;
+: shSetMin true  buttondown? if _s_init uistate ! exit then ;
 
 \ -------------------------------------------------
 \ Calibration
