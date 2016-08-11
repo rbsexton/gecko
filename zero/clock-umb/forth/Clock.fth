@@ -28,9 +28,9 @@
 \ Define the structures before they get used.
 \ ----------------------------------------------------------
 struct ODN \ On-Deck Needle 
-	2 field odn.s
-	2 field odn.m
-	2 field odn.h
+	int odn.s
+	int odn.m
+	int odn.h
 end-struct
 
 struct _HMS
