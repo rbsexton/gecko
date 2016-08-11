@@ -193,11 +193,11 @@ cdata
    over hms.maxsubsec @ < if drop exit then \ If less then max, we're done
   0 over hms.subsec ! \ Reset the subsecs 
 
-  dup hms.w_m @ execute
   1 over hms.s +!
    dup hms.s @ over hms.maxsec @ < if drop exit then 
   0 over hms.s ! \ Reset the seconds
 
+  dup hms.w_m @ execute
   1 over hms.m +!
    dup hms.m @ over hms.maxsec @ < if drop exit then 
   0 over hms.m ! \ Reset the minutes
