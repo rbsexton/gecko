@@ -376,3 +376,5 @@ create StateHandlers
 ' shPendCalM ,  ' shCalM , 
 ' shPendCalS ,  ' shCalS , 
 
+: ADJ_POINTS[]! ( data index -- ) 2* adj_points + w! ;
+: ADJ_POINTS[]@ ( index -- n )    2* adj_points + w@ ;
