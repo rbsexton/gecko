@@ -361,6 +361,11 @@ _GPIO $64  + equ _BUTTONIO
 
 : shPendCalS true buttonup? if _s_calm uistate ! then ; 
 : shCalS true   buttondown? if _s_init uistate ! exit then ; 
+\ -------------------------------------------------
+\ Helpers
+\ -------------------------------------------------
+: helpODNClear ( -- ) \ Set them all to zero
+  odn_ui odn bounds do I off 4 +loop ; 
 
 create StateHandlers 
 ' shInit , 
