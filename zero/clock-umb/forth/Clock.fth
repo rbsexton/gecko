@@ -236,7 +236,6 @@ cdata
 udata 
 create interp_hms  _interp_set allot
 create interp_dhms _interp_set allot 
-create adj_list #50 cells allot \ 100 16-bit words. 
 cdata
 
 #16  #60 * equ raw_sec
@@ -375,6 +374,30 @@ create StateHandlers
 ' shPendCalH ,  ' shCalH , 
 ' shPendCalM ,  ' shCalM , 
 ' shPendCalS ,  ' shCalS , 
+
+\ -------------------------------------------------
+\ Setting the time.
+\ -------------------------------------------------
+variable adj_i \ THe working index into the points array.
+
+udata 
+create adj_points #50 cells allot \ 100 16-bit words. 
+create interp_set  _interp_set allot
+cdata 
+
+\ Generate a list of points.
+: MAKE-SET-LIST ( max steps ) 
+  2dup 
+  >R  (interp_init) swap interp_set swap R> call3--
+
+  \ Since zero is first, do the w! first.
+  swap drop   0 swap \ Keep a running counter.
+  0 do
+    dup I adj_points[]! \ Save the existing value
+    interp_set interp-next + 
+  loop
+  drop
+  ;
 
 : ADJ_POINTS[]! ( data index -- ) 2* adj_points + w! ;
 : ADJ_POINTS[]@ ( index -- n )    2* adj_points + w@ ;
