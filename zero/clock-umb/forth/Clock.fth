@@ -165,8 +165,14 @@ _timer0 $54 + equ _PWM2
 \ PWM/Timer Quadrature
 \ ----------------------------------------------------------
 
-: QUAD@ ( addr -- n ) \ Fetch and zero
-  @off [asm sxth tos, tos asm] ;
+_timer1 $24 + equ QUAD-IN
+
+\ The Quadrature encoder produces two per detent.
+: QUAD@ ( -- n ) \ Fetch and zero
+  quad-in @off 
+  [asm sxth tos, tos asm]
+  [asm asr .s tos, tos, # 1 asm] \ Divide by two,
+  ;
  
 \ ----------------------------------------------------------
 \ Keeping track of the time.
