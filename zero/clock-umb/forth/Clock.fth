@@ -97,7 +97,11 @@ cdata
 ))
 
 : RANGECHECK ( max n -- n or zero ) 2dup <= if 2drop 0 else swap drop then ; 
-
+: CLIP  ( n -- n) \ Force the contents to be legal ( 0-999 )
+  dup 0 < if drop 0 exit then 
+  dup #999 > if drop #999 then 
+;
+ 
 : INTER-BUMP (  max old interp -- new )
 \ *G Get the next value from the interpolator, and 
 \ ** reset the interpolator if it wraps around to zero.
@@ -282,6 +286,11 @@ _GPIO $64  + equ _BUTTONIO
   StateHandlers uistate @ + @ execute 
 ; 
 
+: uitest 
+  uistate @ 4 / . ." ->" uiupdate uistate @ 4 / .
+  uicount @ . if ." True" else ." False" then 
+;  
+
 \ -----------------------------------------------
 \ State numbers.  These are defined x4 so that
 \ we can just use the state number as an index 
@@ -350,22 +359,31 @@ _GPIO $64  + equ _BUTTONIO
 \ -------------------------------------------------
 \ Calibration
 \ -------------------------------------------------
-: shPendCal0 true  buttonup? if _s_cal0 uistate ! then ;
-: shCal0 true    buttondown? if _s_pendcalh uistate ! exit then ;
+: shPendCal0 true  buttonup? if _s_cal0 uistate ! helpODNClear then ;
+: shCal0 true buttondown? if _s_pendcalh uistate ! exit then ;
 
-: shPendCalH true buttonup? if _s_calh uistate ! then ; 
-: shCalH true   buttondown? if _s_pendcalm uistate ! exit then ; 
+: shPendCalH true buttonup? if _s_calh uistate ! helpODNMid then ; 
+: shCalH true   buttondown? if _s_pendcalm uistate ! exit then 
+  odn_ui odn.h helpQuad@ ; 
 
 : shPendCalM true buttonup? if _s_calm uistate ! then ; 
-: shCalM true   buttondown? if _s_pendcals uistate ! exit then ; 
+: shCalM true   buttondown? if _s_pendcals uistate ! exit then 
+  odn_ui odn.m helpQuad@ ; 
 
-: shPendCalS true buttonup? if _s_calm uistate ! then ; 
-: shCalS true   buttondown? if _s_init uistate ! exit then ; 
+: shPendCalS true buttonup? if _s_cals uistate ! then ; 
+: shCalS true   buttondown? if _s_init uistate ! exit then 
+  odn_ui odn.s helpQuad@ ; 
+
 \ -------------------------------------------------
 \ Helpers
 \ -------------------------------------------------
 : helpODNClear ( -- ) \ Set them all to zero
   odn_ui odn bounds do I off 4 +loop ; 
+: helpODNMid ( -- ) \ Set them all to 500
+  odn_ui odn bounds do #750 I ! 4 +loop ; 
+: helpQuad@ ( addr -- ) \ update a location with the quadrature value
+  dup @ quad@ + clip swap ! ;
+
 
 create StateHandlers 
 ' shInit , 
