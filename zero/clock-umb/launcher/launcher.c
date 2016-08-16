@@ -275,9 +275,12 @@ void setupTimers() {
   /* Configure timer */
   TIMER_Init(TIMER_CHOICE, &timerInit);
 
-  GPIO_PinModeSet(gpioPortA,  0, gpioModePushPullDrive, 0); // Timer1 CC2
-  GPIO_PinModeSet(gpioPortA,  1, gpioModePushPullDrive, 0); // Timer1 CC0
-  GPIO_PinModeSet(gpioPortC, 13, gpioModePushPullDrive, 0); // Timer1 CC1
+  GPIO_PinModeSet(gpioPortA,  0, gpioModePushPullDrive, 0); // Timer0 CC0
+  GPIO_PinModeSet(gpioPortA,  1, gpioModePushPullDrive, 0); // Timer0 CC1
+  GPIO_PinModeSet(gpioPortA,  2, gpioModePushPullDrive, 0); // Timer0 CC2
+
+
+//  GPIO_PinModeSet(gpioPortC, 13, gpioModePushPullDrive, 0); // Timer1 CC1
 
 }
 
