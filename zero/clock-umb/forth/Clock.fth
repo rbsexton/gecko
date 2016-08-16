@@ -21,6 +21,7 @@
 : ADVANCEDHMS ( n -- ) 0 do dhms advancetime loop ;
  
 : LOAD-DEFAULTS ( -- )
+  nvramvalid? if _nvramload then 
   interp-init
 ;
 
@@ -54,7 +55,7 @@ end-struct
 \ ----------------------------------------------------------
 \ Defaults get saved in the user data page.
 \ ----------------------------------------------------------
-: NVRAMVALID? ( addr -- t/f ) 
+: NVRAMVALID? ( -- t/f ) 
 \ *G See if there is valid data in the NVRAM.
 \ ** It consists of 3 words.  If any of them are 
 \ ** set to 0xffff:ffff, we go with the defaults.
@@ -69,10 +70,10 @@ end-struct
   $C 0 do I ud@ needle_max I + !   4 +loop 
 ; 
 
-: NVRAM! ( -- )
+: NVRAM! ( addr -- )
 \ *G Save the contents of the needle cal values.
  0 UDPAGE_ERASE
- needle_max
+ ( addr )
  $C 0 do dup I + @  I ud!  4 +loop
  drop 
 ;
@@ -371,7 +372,10 @@ _GPIO $64  + equ _BUTTONIO
   odn_ui odn.m helpQuad@ ; 
 
 : shPendCalS true buttonup? if _s_cals uistate ! then ; 
-: shCalS true   buttondown? if _s_init uistate ! exit then 
+: shCalS true   buttondown? if 
+  _s_init uistate !
+  odn_ui nvram! exit then 
+  
   odn_ui odn.s helpQuad@ ; 
 
 \ -------------------------------------------------
