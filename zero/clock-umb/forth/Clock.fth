@@ -2,7 +2,8 @@
 
 \ The gadget that drives it all.   This is rigged for debugging,
 \ terminate it by setting clockterm to non-zero.
-: CLOCKSTART ( -- )
+: CLOCKSTART ( -- ) 
+  init-idata
   load-defaults 
   icroot 0 over inter.rtcsem ! \ Reset the free-running counters.
          0 over inter.rtcdsem ! \ Reset the free-running counters.
@@ -250,12 +251,12 @@ cdata
   (interp_init) interp_hms
   2dup interp.a needle_max     @ raw_sec call3-- 
   2dup interp.b needle_max 4 + @     #60 call3-- 
-       interp.c needle_max 8 + @     #12 call3--
+       interp.c needle_max 8 + @     #24 #60 * call3--
 
   (interp_init) interp_dhms
   2dup interp.a needle_max     @  raw_dsec call3-- 
   2dup interp.b needle_max 4 + @      #100 call3-- 
-       interp.c needle_max 8 + @       #10 call3--
+       interp.c needle_max 8 + @       #10 #100 * call3--
 ;
 
 \ Call the reset fn.
