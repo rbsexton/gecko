@@ -15,9 +15,3 @@ retrieval of symbols from the interconnect function table.
 The top level contains a build.sh script that compiles the
 launcher and the forth, and combines them together into a
 single binary.
-
-* Requirements
-
-- AAPCS.fth
-
-
