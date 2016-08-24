@@ -99,7 +99,7 @@ cdata
 ))
 
 : RANGECHECK ( max n -- n or zero ) 2dup <= if 2drop 0 else swap drop then ; 
-: CLIP  ( n -- n) \ Force the contents to be legal ( 0-999 )
+: QUADCLIP  ( n -- n) \ Force the contents to be legal ( 0-999 )
   dup 0 < if drop 0 exit then 
   dup #999 > if drop #999 then 
 ;
@@ -385,7 +385,7 @@ _GPIO $64  + equ _BUTTONIO
 : helpODNMid ( -- ) \ Set them all to 500
   odn_ui odn bounds do #750 I ! 4 +loop ; 
 : helpQuad@ ( addr -- ) \ update a location with the quadrature value
-  dup @ quad@ + clip swap ! ;
+  dup @ quad@ + quadclip swap ! ;
 
 
 create StateHandlers 
