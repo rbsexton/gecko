@@ -340,7 +340,7 @@ _GPIO $64  + equ _BUTTONIO
 
 \ We're in the 1 second state
 : sh1sec true 
-  buttonup? if shseth_entry _s_shseth uistate !  exit then
+  buttonup? if shseth_entry exit then
   uicount @ downcount_3s >= if
     _s_pendcal0 uistate !
     else 
@@ -352,17 +352,21 @@ _GPIO $64  + equ _BUTTONIO
 \ Setting the time
 \ -------------------------------------------------
 : shSetH_entry 
+  _s_shseth uistate ! 
   adj_i off \ Set the index to zero
   needle_max odn.h @ #24 make-set-list 
 ; 
 
-: shSetH true buttondown? if _s_pendset_m uistate ! exit then
+: shSetH true buttondown? if shPendSetM_entry exit then
  adj_i @ quad@ - 24 mod \ Now we have the next index.
  dup 0< if #24 + then   \ Negative wrap-around isn't cool
  dup adj_i ! \ Save it.
  adj_points[]@   \ Get the new value.
  odn_ui odn.h ! 
  ;
+
+
+: shPendSetM_entry _s_pendset_m uistate ! ;
 
 : shPendSetM true  buttonup? if _s_setmin uistate ! then ;
 : shSetMin true  buttondown? if _s_init uistate ! exit then ;
