@@ -358,7 +358,7 @@ _GPIO $64  + equ _BUTTONIO
 ; 
 
 : shSetH true buttondown? if shPendSetM_entry exit then
- adj_i @ quad@ - 24 mod \ Now we have the next index.
+ adj_i @ quad@ - #24 mod \ Now we have the next index.
  dup 0< if #24 + then   \ Negative wrap-around isn't cool
  dup adj_i ! \ Save it.
  adj_points[]@   \ Get the new value.
@@ -366,10 +366,33 @@ _GPIO $64  + equ _BUTTONIO
  ;
 
 
-: shPendSetM_entry _s_pendset_m uistate ! ;
+\ On the way into this state, we need to save the 
+\ results.
+: shPendSetM_entry 
+  _s_pendset_m uistate ! 
+  adj_i @ hms hms.h ! \ Save the last result
+
+  adj_i off \ Set the index to zero
+  needle_max odn.m @ #60 make-set-list 
+  ;
 
 : shPendSetM true  buttonup? if _s_setmin uistate ! then ;
-: shSetMin true  buttondown? if _s_init uistate ! exit then ;
+: shSetMin true  buttondown? if setcomplete exit then
+  adj_i @ quad@ - #60 mod \ Now we have the next index.
+  dup 0< if #60 + then   \ Negative wrap-around isn't cool
+  dup adj_i ! \ Save it.
+  adj_points[]@   \ Get the new value.
+  odn_ui odn.m ! 
+  ;
+
+: SetComplete 
+  _s_init uistate !
+  adj_i @ hms hms.m ! \ Save the last result
+ 
+  odn_hms odn_ui 
+  2dup odn.h @ swap odn.h ! 
+  odn.m @ swap odn.m ! 
+  ;
 
 \ -------------------------------------------------
 \ Calibration
