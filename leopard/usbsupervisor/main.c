@@ -90,10 +90,10 @@ void SayHello() {
 	const char *p = message;
 	while(*p) LEUART_Tx(LEUART0,*p++);
 
+	// console_leuart_spin();
 	// Send it a second time via the buffered IO system
-	// p = message;
-	//while(*p) console_leuart_putchar(*p++);
-	
+	//p = message;
+	// while(*p) console_leuart_putchar(*p++);
 	}
 
 
@@ -179,8 +179,8 @@ int main( void )
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
 
+  console_leuart_init(); // Console Data structures.
   initLeuart();
-  // console_leuart_init();
  
   SayHello();
 
@@ -190,7 +190,7 @@ int main( void )
   // uint32_t leuart_status = LEUART0->STATUS;
   // uint32_t leuart_status = CMU->CTRL;
   // uint32_t leuart_status = CMU->LFCLKSEL;
-  // uint32_t leuart_status = CMU->STATUS;
+  uint32_t leuart_status = CMU->STATUS;
   // uint32_t leuart_status = CMU_ClockSelectGet(cmuClock_LFB);
   // uint32_t leuart_status = LEUART0->ROUTE;
   // uint32_t leuart_status = LEUART0->SYNCBUSY;

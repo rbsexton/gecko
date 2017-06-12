@@ -63,13 +63,6 @@ void initLeuart(void)
 
   /* Enable LEUART interrupt vector in NVIC */
   // NVIC_EnableIRQ(LEUART0_IRQn);
-
-  // This should be handled by the Init code.
-  // LEUART_Enable(LEUART0, leuartEnable);
- 
-  // Wait for Sync.
-  while ( LEUART0->SYNCBUSY ) { ; }   
-
   }
 
 // Check for valid data, and if so clear it by pulling it out.
@@ -85,7 +78,7 @@ void LEUART0_IRQHandler(void) {
  		}
 
 	// It the FIFO emptied out, check for more work.
-	if ( ( leuartif & LEUART_IEN_TXBL) && ringbuffer_used(&rb_rx) ) {
+	if ( ( leuartif & LEUART_IEN_TXBL ) && ringbuffer_used(&rb_tx) ) {
 		uint32_t thechar = ringbuffer_getchar(&rb_rx);
 		LEUART0->TXDATA = thechar;
 		}
@@ -107,17 +100,20 @@ bool console_leuart_putchar(int c) {
 	
 	uint32_t leuart_status = LEUART0->STATUS;
 	
-	if ( !(leuart_status & LEUART_STATUS_TXBL ) || ringbuffer_used(&rb_tx) ) {
-		int free = ringbuffer_addchar(&rb_tx,c);
-		if ( free <= 1 ) { // Always reserve the last char for XOFF
-			return(true);
-			}
-		else return(false);
-		}
+	bool tx_hw_empty = (leuart_status & LEUART_STATUS_TXBL) != 0;
 	
-	// Otherwise, it can go into the FIFO.
-	LEUART0->TXDATA = c;
-	return(false);
+	// Check for en empty HW FIFO and bypass the ring buffer.
+	if ( tx_hw_empty && (ringbuffer_used(&rb_tx) == 0) ) { 
+		LEUART0->TXDATA = c;
+		return(false);
+		}
+		
+	// From here on, we know that the HW FIFO is full.
+	int free = ringbuffer_addchar(&rb_tx,c);
+	if ( free <= 1 ) { // Always reserve the last char for XOFF
+		return(true);
+		}
+	else return(false);
 	}
 
 
@@ -126,5 +122,9 @@ void console_leuart_init() {
 	ringbuffer_init(&rb_tx,rb_storage_tx,RX_FIFOSIZE);			
 	}
 
-
-
+void console_leuart_spin() {
+	bool busy;
+	do { 
+		busy = (LEUART0->STATUS & LEUART_STATUS_TXBL) == 0 ;
+		} while ( busy );	
+	}
