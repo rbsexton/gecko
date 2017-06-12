@@ -38,13 +38,15 @@
 
 static const char lut[] = "0123456789ABCDEF";
 
-char hexcode[9] = "01234567"; // Make it null-terminated
+// The Display only has 7 digits!
+char hexcode[8] = "0123456"; // Make it null-terminated
 
-static char *tohex(uint32_t in) { 
+static char *tohex(uint32_t in) {
+	in = in & 0x0FFFFFFF; // Mask off the top nibble.
 	int i;
-	for (i = 0; i < 7; i++) {
-		hexcode[7-i] = lut[in & 0xf];
-		in = in >>4;
+	for (i = 0; i < 6; i++) {
+		hexcode[6-i] = lut[ in & 0xF ];
+		in = in>>4;
 		}
 	return(hexcode);
 	}
