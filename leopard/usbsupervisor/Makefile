@@ -152,7 +152,7 @@ $(SDK)/emlib/src/em_msc.c \
 $(SDK)/emlib/src/em_rtc.c \
 $(SDK)/emlib/src/em_system.c \
 $(SDK)/emlib/src/em_timer.c \
-$(SDK)/emlib/src/em_usart.c \
+$(SDK)/emlib/src/em_leuart.c \
 $(SDK)/usb/src/em_usbd.c \
 $(SDK)/usb/src/em_usbdch9.c \
 $(SDK)/usb/src/em_usbhal.c \
@@ -162,6 +162,7 @@ $(SDK)/usb/src/em_usbtimer.c \
 ./main.c \
 ./descriptors.c \
 ./faux-cdc.c \
+./console_leuart.c \
 $(SDK)/kits/common/drivers/dmactrl.c \
 $(SDK)/kits/common/drivers/segmentlcd.c \
 $(CM3LIB)/ringbuffer.c \

@@ -17,6 +17,7 @@
 #include "em_assert.h"
 #include "em_cmu.h"
 #include "em_gpio.h"
+#include "em_leuart.h"
 #include "em_rtc.h"
 
 #include "bsp.h"
@@ -30,6 +31,23 @@
 
 #include "ringbuffer.h"
 #include "testsyscall.h"
+
+#include "console_leuart.h"
+
+// For the Leopard Gecko board, TX=PD4, RX=PD5
+
+static const char lut[] = "0123456789ABCDEF";
+
+char hexcode[9] = "01234567"; // Make it null-terminated
+
+static char *tohex(uint32_t in) { 
+	int i;
+	for (i = 0; i < 7; i++) {
+		hexcode[7-i] = lut[in & 0xf];
+		in = in >>4;
+		}
+	return(hexcode);
+	}
 
 
 /**************************************************************************//**
@@ -61,6 +79,23 @@ const USBD_Init_TypeDef usbInitStruct =
   .bufferingMultiplier = USBDESC_bufferingMultiplier,
   .reserved            = 0
 };
+
+// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// Boot Message
+// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+const char message[] = "Boot! ";
+void SayHello() {
+	const char *p = message;
+	while(*p) LEUART_Tx(LEUART0,*p++);
+
+	// Send it a second time via the buffered IO system
+	// p = message;
+	//while(*p) console_leuart_putchar(*p++);
+	
+	}
+
 
 /**************************************************************************//**
  * @brief  Setup Real Time Clock (RTC)
@@ -131,17 +166,37 @@ extern uint32_t app_start_address;
 extern RINGBUF rb;
 int main( void )
 {
-  /* If first word of user data page is non-zero, enable eA Profiler trace */
-  BSP_TraceProfilerSetup();
+	
+  CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO );
+  CMU_OscillatorEnable(cmuOsc_LFXO, true, false); 
 
-  CMU_ClockSelectSet( cmuClock_HF, cmuSelect_HFXO );
-  CMU_OscillatorEnable(cmuOsc_LFXO, true, false);
+  /* Start LFXO, and use LFXO for low-energy modules */
+  CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
+  CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
 
+  CMU_ClockEnable(cmuClock_CORELE, true);
+  CMU_ClockEnable(cmuClock_GPIO, true);
+  CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
+
+  initLeuart();
+  // console_leuart_init();
+ 
+  SayHello();
 
   /* Initialize LCD driver */
   SegmentLCD_Init(false);
-  SegmentLCD_Write("usbcomp");
+
+  // uint32_t leuart_status = LEUART0->STATUS;
+  // uint32_t leuart_status = CMU->CTRL;
+  // uint32_t leuart_status = CMU->LFCLKSEL;
+  // uint32_t leuart_status = CMU->STATUS;
+  // uint32_t leuart_status = CMU_ClockSelectGet(cmuClock_LFB);
+  // uint32_t leuart_status = LEUART0->ROUTE;
+  // uint32_t leuart_status = LEUART0->SYNCBUSY;
+  // uint32_t leuart_status = LEUART0->CTRL;
+
+  SegmentLCD_Write(tohex(leuart_status));
   SegmentLCD_Symbol(LCD_SYMBOL_GECKO, true);
 
   setupRtc();
