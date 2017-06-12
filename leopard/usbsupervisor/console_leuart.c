@@ -79,7 +79,7 @@ void LEUART0_IRQHandler(void) {
 
 	// It the FIFO emptied out, check for more work.
 	if ( ( leuartif & LEUART_IEN_TXBL ) && ringbuffer_used(&rb_tx) ) {
-		uint32_t thechar = ringbuffer_getchar(&rb_rx);
+		uint32_t thechar = ringbuffer_getchar(&rb_tx);
 		LEUART0->TXDATA = thechar;
 		}
 		// Set if there is a blocked thread waiting for space.
@@ -103,12 +103,22 @@ bool console_leuart_putchar(int c) {
 	bool tx_hw_empty = (leuart_status & LEUART_STATUS_TXBL) != 0;
 	
 	// Check for en empty HW FIFO and bypass the ring buffer.
-	if ( tx_hw_empty && (ringbuffer_used(&rb_tx) == 0) ) { 
-		LEUART0->TXDATA = c;
+	if ( tx_hw_empty ) {
+		// If the RB is empty, bypass it. 
+		if ( ringbuffer_used(&rb_tx) == 0) { 
+			LEUART0->TXDATA = c;
+			}
+		// Otherwise there is something in there, and it needs
+		// to be sent first.
+		else { 
+			int thechar = ringbuffer_getchar(&rb_tx);
+			LEUART0->TXDATA = thechar;
+			ringbuffer_addchar(&rb_tx,c); // Don't check status.  No change.
+			}
 		return(false);
 		}
-		
-	// From here on, we know that the HW FIFO is full.
+	
+	// Otherwise the TX FIFO was full.
 	int free = ringbuffer_addchar(&rb_tx,c);
 	if ( free <= 1 ) { // Always reserve the last char for XOFF
 		return(true);
