@@ -25,16 +25,18 @@ static RINGBUF rb_rx;
 static RINGBUF rb_tx; 
 typedef struct {
 	unsigned long *tcb;
-	unsigned block_count;
+	unsigned blocked_count_tx;
+	unsigned blocked_count_rx;
+	unsigned xoff_count;
 	bool blocked_tx;
+	bool blocked_rx;
 	uint8_t pended_fc_char; // Send at the next opportunity.
 	} sIOBlockingData;
 
 // Support multiple descriptors.	
-sIOBlockingData connection_state[1] = { { 0,0, false }};
+sIOBlockingData connection_state[1] = { { 0,0,0,0, false, false, 0 }};
 
 void forth_thread_stop(sIOBlockingData *s) {			
-	s->block_count++;
 	s->tcb[2] &= ~1; // Clear it using the unsafe technique.				
 	}
 
@@ -91,10 +93,16 @@ void LEUART0_IRQHandler(void) {
 	uint32_t leuartif = LEUART_IntGet(LEUART0);
  	LEUART_IntClear(LEUART0, leuartif);
   	count_leuart_irqs++;
+
+	sIOBlockingData *s = &connection_state[0];
   
 	if ( leuartif & LEUART_IEN_RXDATAV ) {
 		ringbuffer_addchar(&rb_rx, LEUART0->RXDATAX);
 		// See if there is a blocking read 
+		if ( s->blocked_rx ) {
+			s->blocked_rx = false;
+			forth_thread_restart(s);
+			}	 
  		}
 
 	// If we finished a transmission, check for more work.
@@ -115,10 +123,10 @@ void LEUART0_IRQHandler(void) {
 			
 			// See if thats the last char, and if so, re-start.
 			if ( used == 0 && \
-			 	connection_state[0].blocked_tx == true && \
-				connection_state[0].tcb ) {
-				connection_state[0].blocked_tx = false;
-				forth_thread_restart(&connection_state[0]);
+			 	s->blocked_tx == true && \
+				s->tcb ) {
+				s->blocked_tx = false;
+				forth_thread_restart(s);
 				}
 			}				
 		}
@@ -172,6 +180,8 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 		if ( tcb ) {
 			connection_state[0].tcb = tcb;
 			connection_state[0].blocked_tx = true;
+			connection_state[0].blocked_count_tx++;
+			
 			forth_thread_stop(&connection_state[0]);
 			}
 		return(true);		
@@ -188,9 +198,19 @@ int console_leuart_charsavailable() {
 
 // ------------------------------------------------------------
 // console getchar().   Return the next character or -1.
+// Supports blocking reads.
 // ------------------------------------------------------------
-int console_leuart_getchar() {
-	return( ringbuffer_getchar(&rb_rx));
+int console_leuart_getchar(unsigned long *tcb) {
+	int result = ringbuffer_getchar(&rb_rx);
+	
+	if ( result == -1 && tcb ) {
+		connection_state[0].tcb = tcb;
+		connection_state[0].blocked_rx = true;
+		connection_state[0].blocked_count_rx++;		
+		forth_thread_stop(&connection_state[0]);
+		}
+	
+	return(result);
 	}
 
 // ------------------------------------------------------------
