@@ -32,6 +32,16 @@ typedef struct {
 // Support multiple descriptors.	
 sIOBlockingData connection_state[1] = { { 0,0, false }};
 
+void forth_thread_stop(sIOBlockingData *s) {			
+	s->block_count++;
+	s->tcb[2] &= ~1; // Clear it using the unsafe technique.				
+	}
+
+void forth_thread_restart(sIOBlockingData *s) {			
+	s->tcb[2] |= 1;
+	s->tcb = 0;
+	}
+
 
 /* LEUART1 initialization data */
 const LEUART_Init_TypeDef leuart0Init =
@@ -98,10 +108,8 @@ void LEUART0_IRQHandler(void) {
 			if ( used == 0 && \
 			 	connection_state[0].blocked_tx == true && \
 				connection_state[0].tcb ) {
-					
 				connection_state[0].blocked_tx = false;
-				connection_state[0].tcb[2] |= 1;
-				connection_state[0].tcb  = 0;
+				forth_thread_restart(&connection_state[0]);
 				}
 			}				
 		}
@@ -152,11 +160,10 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 	
 	// If we're maxing out, tell the caller to yield.
 	if ( free <= TX_FIFOSIZE/2  ) { // Always reserve the last char for XOFF
-		if ( && tcb ) {
-			connection_state[0].blocked_tx = true;
-			connection_state[0].block_count++;
+		if ( tcb ) {
 			connection_state[0].tcb = tcb;
-			connection_state[0].tcb[2] &= ~1; // Clear it using the unsafe technique.			
+			connection_state[0].blocked_tx = true;
+			forth_thread_stop(&connection_state[0]);
 			}
 		return(true);		
 		}
