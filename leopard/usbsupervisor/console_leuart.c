@@ -27,6 +27,7 @@ typedef struct {
 	unsigned long *tcb;
 	unsigned block_count;
 	bool blocked_tx;
+	uint8_t pended_fc_char; // Send at the next opportunity.
 	} sIOBlockingData;
 
 // Support multiple descriptors.	
@@ -98,6 +99,14 @@ void LEUART0_IRQHandler(void) {
 
 	// If we finished a transmission, check for more work.
 	if ( leuartif & LEUART_IEN_TXC ) {
+
+		// Check for pended XON/XOFF characters.
+		if ( s->pended_fc_char ) { 
+			LEUART0->TXDATA = s->pended_fc_char;
+			s->pended_fc_char = 0;
+			return;
+			}
+						
 		int used = ringbuffer_used(&rb_tx);
 		if ( used ) {
 			uint32_t thechar = ringbuffer_getchar(&rb_tx);
