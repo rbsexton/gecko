@@ -159,7 +159,7 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 	int free = ringbuffer_addchar(&rb_tx,c);
 	
 	// If we're maxing out, tell the caller to yield.
-	if ( free <= TX_FIFOSIZE/2  ) { // Always reserve the last char for XOFF
+	if ( free == 0 ) { // Let it fill up.  No flow control chars in the ringbuffer.
 		if ( tcb ) {
 			connection_state[0].tcb = tcb;
 			connection_state[0].blocked_tx = true;
