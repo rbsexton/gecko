@@ -91,17 +91,17 @@ void LEUART0_IRQHandler(void) {
 			
 	}
 
+
 // ------------------------------------------------------------
 // The console puchar() call.  Intended for use with forth
 // Returns t/f based upon whether or not the write is a 
-// blocking event.    
+// blocking event - the thread must yield.
 // Note that accessing low energy peripherals is a slow process.
 // Don't waste any operations.
 // ------------------------------------------------------------
-
 static uint32_t pended = 0;
 
-bool console_leuart_putchar(int c) {
+bool console_leuart_putchar(int c,  unsigned long *tcb) {
 
 	pended++;
 
@@ -132,13 +132,33 @@ bool console_leuart_putchar(int c) {
 		}
 	
 	int free = ringbuffer_addchar(&rb_tx,c);
-	if ( free <= 1 ) { // Always reserve the last char for XOFF
+	
+	// If we're maxing out, tell the caller to yield.
+	if ( free <= TX_FIFOSIZE/2 ) { // Always reserve the last char for XOFF
 		return(true);
 		}
 	else return(false);
 	}
 
+// ------------------------------------------------------------
+// The console charsavailable() call for use with key?
+// ------------------------------------------------------------
+int console_leuart_charsavailable() {
+	return( ringbuffer_used(&rb_rx));
+	}
 
+// ------------------------------------------------------------
+// console getchar().   Return the next character or -1.
+// ------------------------------------------------------------
+int console_leuart_getchar() {
+	return( ringbuffer_getchar(&rb_rx));
+	}
+
+// ------------------------------------------------------------
+// ------------------------------------------------------------
+// ------------------------------------------------------------
+// ------------------------------------------------------------
+// ------------------------------------------------------------
 void console_leuart_init() {
 	ringbuffer_init(&rb_rx,rb_storage_rx,RX_FIFOSIZE);
 	ringbuffer_init(&rb_tx,rb_storage_tx,RX_FIFOSIZE);			
