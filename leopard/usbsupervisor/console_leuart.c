@@ -23,6 +23,15 @@ static uint8_t rb_storage_tx[TX_FIFOSIZE];
 
 static RINGBUF rb_rx; 
 static RINGBUF rb_tx; 
+typedef struct {
+	unsigned long *tcb;
+	unsigned block_count;
+	bool blocked;
+	} sIOBlockingData;
+
+// Support multiple descriptors.	
+sIOBlockingData connection_state[1] = { { 0,0, false }};
+
 
 /* LEUART1 initialization data */
 const LEUART_Init_TypeDef leuart0Init =
@@ -84,9 +93,14 @@ void LEUART0_IRQHandler(void) {
 			uint32_t thechar = ringbuffer_getchar(&rb_tx);
 			LEUART0->TXDATA = thechar;
 			used--;
-			}
-				
-		// Check for a blocked thread.		
+			
+			// See if thats the last char, and if so, re-start.
+			if ( used == 0 && connection_state[0].blocked == true ) {
+				connection_state[0].blocked = false;
+				connection_state[0].tcb[2] |= 1;
+				connection_state[0].tcb  = 0;
+				}
+			}				
 		}
 			
 	}
@@ -135,7 +149,11 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 	
 	// If we're maxing out, tell the caller to yield.
 	if ( free <= TX_FIFOSIZE/2 ) { // Always reserve the last char for XOFF
-		return(true);
+		connection_state[0].blocked = true;
+		connection_state[0].block_count++;
+		connection_state[0].tcb = tcb;
+		connection_state[0].tcb[2] &= ~1; // Clear it using the unsafe technique.
+		return(true);		
 		}
 	else return(false);
 	}
@@ -152,6 +170,14 @@ int console_leuart_charsavailable() {
 // ------------------------------------------------------------
 int console_leuart_getchar() {
 	return( ringbuffer_getchar(&rb_rx));
+	}
+
+// ------------------------------------------------------------
+// console send eol.  This should really be a wrapped 
+// form of 
+// ------------------------------------------------------------
+bool console_leuart_eol(unsigned long *tcb) {
+	return(false);
 	}
 
 // ------------------------------------------------------------
