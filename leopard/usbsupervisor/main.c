@@ -92,10 +92,13 @@ void SayHello() {
 	const char *p = message;
 	while(*p) LEUART_Tx(LEUART0,*p++);
 
-	console_leuart_spin();
+	// console_leuart_spin();
 	// Send it a second time via the buffered IO system
 	p = message;
-	while(*p) console_leuart_putchar(*p++);
+	while(*p) {
+		console_leuart_putchar(*p);
+		p++;
+		}
 	}
 
 
@@ -166,6 +169,8 @@ void RTC_IRQHandler(void) {
 
 extern uint32_t app_start_address;
 extern RINGBUF rb;
+extern uint32_t console_leuart_probe(); 
+
 int main( void )
 {
 	

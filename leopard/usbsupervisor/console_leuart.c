@@ -48,7 +48,7 @@ void initLeuart(void)
   LEUART0->ROUTE = LEUART_ROUTE_TXPEN | LEUART_ROUTE_RXPEN | LEUART_ROUTE_LOCATION_LOC0;
 
   /* Enable TX Completion and RX Data */
-  // LEUART_IntEnable(LEUART0, LEUART_IEN_RXDATAV|LEUART_IEN_TXBL);
+  LEUART_IntEnable(LEUART0, LEUART_IEN_RXDATAV|LEUART_IEN_TXC);
 
   /* Enable GPIO for LEUART0. TX is on C6 */
   GPIO_PinModeSet(gpioPortD,                /* GPIO port */
@@ -62,7 +62,7 @@ void initLeuart(void)
                  1);                       /* High idle state */
 
   /* Enable LEUART interrupt vector in NVIC */
-  // NVIC_EnableIRQ(LEUART0_IRQn);
+  NVIC_EnableIRQ(LEUART0_IRQn);
   }
 
 // Check for valid data, and if so clear it by pulling it out.
@@ -77,13 +77,18 @@ void LEUART0_IRQHandler(void) {
 		// See if there is a blocking read 
  		}
 
-	// It the FIFO emptied out, check for more work.
-	if ( ( leuartif & LEUART_IEN_TXBL ) && ringbuffer_used(&rb_tx) ) {
-		uint32_t thechar = ringbuffer_getchar(&rb_tx);
-		LEUART0->TXDATA = thechar;
+	// If we finished a transmission, check for more work.
+	if ( leuartif & LEUART_IEN_TXC ) {
+		int used = ringbuffer_used(&rb_tx);
+		if ( used ) {
+			uint32_t thechar = ringbuffer_getchar(&rb_tx);
+			LEUART0->TXDATA = thechar;
+			used--;
+			}
+				
+		// Check for a blocked thread.		
 		}
-		// Set if there is a blocked thread waiting for space.
-	
+			
 	}
 
 // ------------------------------------------------------------
@@ -93,16 +98,24 @@ void LEUART0_IRQHandler(void) {
 // Note that accessing low energy peripherals is a slow process.
 // Don't waste any operations.
 // ------------------------------------------------------------
+
+static uint32_t pended = 0;
+
 bool console_leuart_putchar(int c) {
+
+	pended++;
+
+	// Make sure that there is no syncing to the LE Domain going on.
+	// If thats happening, we have no choice but to wait.
+	while ( LEUART0->SYNCBUSY ) { ; }
 	
 	// Condition #1 - There is already data in the TX FIFO.
 	// or the FIFO is full.  Add it and check for highwater.
-	
 	uint32_t leuart_status = LEUART0->STATUS;
 	
 	bool tx_hw_empty = (leuart_status & LEUART_STATUS_TXBL) != 0;
 	
-	// Check for en empty HW FIFO and bypass the ring buffer.
+	// Check for an empty HW FIFO and bypass the ring buffer.
 	if ( tx_hw_empty ) {
 		// If the RB is empty, bypass it. 
 		if ( ringbuffer_used(&rb_tx) == 0) { 
@@ -113,12 +126,11 @@ bool console_leuart_putchar(int c) {
 		else { 
 			int thechar = ringbuffer_getchar(&rb_tx);
 			LEUART0->TXDATA = thechar;
-			ringbuffer_addchar(&rb_tx,c); // Don't check status.  No change.
+			ringbuffer_addchar(&rb_tx,c); // Don't check status.  No change.			
 			}
 		return(false);
 		}
 	
-	// Otherwise the TX FIFO was full.
 	int free = ringbuffer_addchar(&rb_tx,c);
 	if ( free <= 1 ) { // Always reserve the last char for XOFF
 		return(true);
@@ -137,4 +149,10 @@ void console_leuart_spin() {
 	do { 
 		busy = (LEUART0->STATUS & LEUART_STATUS_TXBL) == 0 ;
 		} while ( busy );	
+	}
+
+uint32_t console_leuart_probe() {
+	// return( (uint32_t) &rb_tx);
+	// return(pended);
+	return(ringbuffer_used(&rb_tx));
 	}
