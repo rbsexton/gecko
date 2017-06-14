@@ -96,10 +96,41 @@ void SayHello() {
 	// Send it a second time via the buffered IO system
 	p = message;
 	while(*p) {
-		console_leuart_putchar(*p);
+		console_leuart_putchar(*p, 0);
 		p++;
 		}
 	}
+
+
+
+// Exercise the SAPI system call interface.
+
+void Syscall_Exercize(int stream) {
+	const char *p = "Syscall! ";
+	while(*p) PutChar(stream,*p++);
+		
+	int count = 0;
+	int c = -1;
+	  for (;;) {
+		count++;
+		if ( count > 100000) {
+			count -= 100000;
+			c++;
+			c %= 26;
+			PutChar(stream,c + 'A');
+			}
+			
+		int c2 = GetCharAvail(stream);
+		if ( c2 == 0 ) {
+			__asm("wfi");
+		} else {
+			c2 = GetChar(stream);
+			PutChar(stream,c2);
+			PutChar(stream,'!');
+			}
+		}
+	}
+
 
 
 /**************************************************************************//**
@@ -229,34 +260,11 @@ int main( void )
 
 	// Make the one-way trip.
 	
-    LaunchApp(0x20000);
-
+  
 	// char buf[20];
 	// usprintf(buf,"%x",*((unsigned long *) (0xE000ED04) ));
 	// SegmentLCD_Write(buf);
 
-int count = 0;
-int c = -1;
-  for (;;) {
-	count++;
-	if ( count > 1000000) {
-		count -= 1000000;
-		c++;
-		c %= 26;
-		PutChar(10,c + 'A');
-	}
-	// int c2 = GetChar(10);
-	// if ( c2 < 0 ) {
-	// __asm("wfi");
-	int c2 = GetCharAvail(10);
-	if ( c2 == 0 ) {
-		__asm("wfi");
-	} else {
-		c2 = GetChar(10);
-		PutChar(10,c2);
-		PutChar(10,'!');
-		}
-	}
  }
 
 /**************************************************************************//**
