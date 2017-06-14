@@ -84,8 +84,8 @@ Stamp? 0= [if] +xrefs [then]	\ enable cross references
 \ 3/4 of the RAM.
 
   $0002:0000 $0002:FFFF cdata section Leopard	\ code section in boot Flash
-  $2000:2000 $2000:6fff idata section PROGd	\  IDATA - Interactive code here.
-  $2000:7000 $2000:7FFF udata section PROGu	\  UDATA
+  $2000:2000 $2000:3fff idata section PROGd	\  IDATA - Initialized memory.
+  $2000:4000 $2000:7FFF udata section PROGu	\  UDATA
 
 interpreter
 : prog Leopard ;			\ synonym
@@ -114,7 +114,7 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
 0 equ #SVCs			\ number of SVC nestings permitted
 				\ 0 is ok if SVCs are unused
 
-#10 equ console-port	\ -- n ; Designate serial port for terminal (0..n).
+#0  equ console-port	\ -- n ; Designate serial port for terminal (0..n).
   0 equ useUART0? 
 
 \ *G Ports 1..5 are the on-chip UARTs. The internal USB device
@@ -236,7 +236,7 @@ external
 \ *S Application code
 \ *******************
 
-include %SAPIDir%/serCM3_SAPI-level0 \ polled serial driver
+include %SAPIDir%/serCM3_SAPI-level1 \ polled serial driver
 
 \ include %AppDir%/startup
 ' hex AtCold
