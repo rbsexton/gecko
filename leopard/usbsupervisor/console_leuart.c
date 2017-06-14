@@ -26,7 +26,7 @@ static RINGBUF rb_tx;
 typedef struct {
 	unsigned long *tcb;
 	unsigned block_count;
-	bool blocked;
+	bool blocked_tx;
 	} sIOBlockingData;
 
 // Support multiple descriptors.	
@@ -95,8 +95,11 @@ void LEUART0_IRQHandler(void) {
 			used--;
 			
 			// See if thats the last char, and if so, re-start.
-			if ( used == 0 && connection_state[0].blocked == true ) {
-				connection_state[0].blocked = false;
+			if ( used == 0 && \
+			 	connection_state[0].blocked_tx == true && \
+				connection_state[0].tcb ) {
+					
+				connection_state[0].blocked_tx = false;
 				connection_state[0].tcb[2] |= 1;
 				connection_state[0].tcb  = 0;
 				}
@@ -148,11 +151,13 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 	int free = ringbuffer_addchar(&rb_tx,c);
 	
 	// If we're maxing out, tell the caller to yield.
-	if ( free <= TX_FIFOSIZE/2 ) { // Always reserve the last char for XOFF
-		connection_state[0].blocked = true;
-		connection_state[0].block_count++;
-		connection_state[0].tcb = tcb;
-		connection_state[0].tcb[2] &= ~1; // Clear it using the unsafe technique.
+	if ( free <= TX_FIFOSIZE/2  ) { // Always reserve the last char for XOFF
+		if ( && tcb ) {
+			connection_state[0].blocked_tx = true;
+			connection_state[0].block_count++;
+			connection_state[0].tcb = tcb;
+			connection_state[0].tcb[2] &= ~1; // Clear it using the unsafe technique.			
+			}
 		return(true);		
 		}
 	else return(false);
