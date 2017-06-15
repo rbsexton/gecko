@@ -42,7 +42,7 @@ bool __SAPI_02_PutChar(int stream, uint8_t c, unsigned long *tcb) {
 int __SAPI_03_GetChar(int stream, unsigned long *tcb) {
 	switch ( stream ) {
 		case 0:
-			return(console_leuart_getchar());
+			return(console_leuart_getchar(tcb));
 		case 10:
 		case 11:
 			return(USBGetChar(stream-10, tcb));			
