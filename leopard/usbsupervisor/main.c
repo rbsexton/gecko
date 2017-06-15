@@ -234,10 +234,14 @@ int main( void )
   // uint32_t leuart_status = LEUART0->SYNCBUSY;
   // uint32_t leuart_status = LEUART0->CTRL;
 
-  SegmentLCD_Write(tohex(leuart_status));
+
+  SegmentLCD_Write(tohex(*((uint32_t *) 0x20004)) );
+  // SegmentLCD_Write(tohex(0x123A5678));
   SegmentLCD_Symbol(LCD_SYMBOL_GECKO, true);
 
   setupRtc();
+
+  // Syscall_Exercize(0); 
 
   /* Initialize LED driver */
   BSP_LedsInit();
@@ -247,8 +251,9 @@ int main( void )
   /* Initialize and start USB device stack. */
   USBD_Init(&usbInitStruct);
 
-   // We need PendSV to launch forth.  Its always enabled.
-   NVIC_SetPriority(PendSV_IRQn,7);
+  // We need PendSV to launch forth.  Its always enabled.
+  NVIC_SetPriority(PendSV_IRQn,7);
+  LaunchApp(0x20000);
 
   /*
    * When using a debugger it is practical to uncomment the following three
