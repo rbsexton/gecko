@@ -42,7 +42,7 @@ internal
 
 : (serkey?)	\ base -- t/f
 \ *G Return true if the given UART has a character avilable to read.
-  c@ 		\ Rx FIFO empty test
+  @ 0 >= 	\ Rx FIFO empty test
 ;
 
 : (serkey)	\ base -- char
@@ -50,10 +50,11 @@ internal
 \ ** return the character.
   begin
 [ tasking? ] [if]  pause  [then]
-    dup c@
-     dup 0= if [asm wfi asm] then  
+    dup @
+    dup 0 < if [asm wfi asm] then  
+    0 >= 
   until
-  dup c@ swap 0 swap !
+  dup c@ swap -1 swap !
 ;
 
 : initUART	\ divisor22 base --

@@ -9,7 +9,7 @@
 
 typedef struct {
 	uint32_t jumptable;
-	int32_t u0rxdata;
+	int32_t  u0rxdata;
 	uint32_t ticks;
 } tSharedData;
 
