@@ -141,23 +141,28 @@ void SayHello() {
 /**************************************************************************//**
  * @brief  Main function
  *****************************************************************************/
+int main(void) __attribute ((noreturn)); 
+
+
 int main(void)
 {
   /* Chip errata */
   CHIP_Init();
 
+  CMU_ClockEnable(cmuClock_HFPER, true);
+ 
   /* Start LFXO, and use LFXO for low-energy modules */
   // CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
   CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
 
   /* Enabling clocks, all other remain disabled */
   CMU_ClockEnable(cmuClock_CORELE, true);     /* Enable CORELE clock */
-  // CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
+  CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
   // CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
 
   /* Initialize LED driver */
-  BSP_LedsInit();
+  // BSP_LedsInit(); // This appears to be bloatware.
 
   /* Re-config the HFRCO to the low band */
   // CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
@@ -173,7 +178,7 @@ int main(void)
   /* Infinite blink loop */
   while (1)
   {
-    BSP_LedToggle(0);
+    // BSP_LedToggle(0);
 	int i;
 	for ( i = 0; i < 10000; i++ ) { ; }
 	//Delay(100);
