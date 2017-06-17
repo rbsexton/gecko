@@ -165,7 +165,7 @@ int main(void)
   // BSP_LedsInit(); // This appears to be bloatware.
 
   /* Re-config the HFRCO to the low band */
-  // CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
+  CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
 
   /* Initialize LEUART */
   initLeuart();
