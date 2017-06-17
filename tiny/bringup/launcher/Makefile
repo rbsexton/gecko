@@ -31,7 +31,7 @@ LST_DIR = lst
 # Change path to the tools according to your system configuration
 # DO NOT add trailing whitespace chars, they do matter !
 WINDOWSCS  ?= GNU Tools ARM Embedded\4.8 2013q4
-LINUXCS    ?= ~/gcc-arm-none-eabi-4_8-2014q3
+LINUXCS    ?= ~/gcc-arm-none-eabi-6-2017-q1-update
 
 RMDIRS     := rm -rf
 RMFILES    := rm -rf
