@@ -16,7 +16,7 @@ uniq = $(strip $(if $1,$(firstword $1) \
 DEVICE = EFM32TG840F32
 PROJECTNAME = launcher
 SDKROOT= /Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
-CM3LIB= ../../../cm3lib
+CM3LIB= ../../../../cm3lib
 
 
 OBJ_DIR = build
@@ -109,9 +109,9 @@ override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=corte
 #
 override LDFLAGS += -Xlinker -Map=$(LST_DIR)/$(PROJECTNAME).map -mcpu=cortex-m3 \
 -mthumb -Tefm32tg.ld \
- -Wl,--gc-sections
+ -Wl,--gc-sections --specs=nano.specs
 
-LIBS = -Wl,--start-group -lgcc -lc -lnosys   -Wl,--end-group
+LIBS = -Wl,--start-group -lgcc -lnosys -lc -Wl,--end-group
 
 INCLUDEPATHS += \
 -I.. \
@@ -119,9 +119,11 @@ INCLUDEPATHS += \
 -I$(SDKROOT)/CMSIS/Include \
 -I$(SDKROOT)/Device/SiliconLabs/EFM32TG/Include \
 -I$(SDKROOT)/emlib/inc \
+-I$(SDKROOT)/kits/common/bsp \
+-I$(SDKROOT)/kits/EFM32TG_STK3300/config \
 -I../../../config
 
-####################################################################
+###################################################################
 # Files                                                            #
 ####################################################################
 
@@ -134,6 +136,7 @@ $(SDKROOT)/emlib/src/em_gpio.c \
 $(SDKROOT)/emlib/src/em_system.c \
 $(SDKROOT)/emlib/src/em_leuart.c \
 $(SDKROOT)/emlib/src/em_rtc.c \
+$(SDKROOT)/kits/common/bsp/bsp_stk_leds.c \
 ../launcher.c ../interconnect.c
 
 s_SRC += 
@@ -165,7 +168,7 @@ vpath %.S $(S_PATHS)
 # Default build is debug build
 all:      debug
 
-debug:    CFLAGS += -DDEBUG -O0 -g
+debug:    CFLAGS += -DDEBUG -O2 -g
 debug:    $(EXE_DIR)/$(PROJECTNAME).bin
 
 release:  CFLAGS += -DNDEBUG -O0 -g 
@@ -193,7 +196,8 @@ $(EXE_DIR)/$(PROJECTNAME).out: $(OBJS)
 # Create binary file
 $(EXE_DIR)/$(PROJECTNAME).bin: $(EXE_DIR)/$(PROJECTNAME).out
 	@echo "Creating binary file"
-	$(OBJCOPY) -O binary $(EXE_DIR)/$(PROJECTNAME).out $(EXE_DIR)/$(PROJECTNAME).bin
+	# $(OBJCOPY) -O binary $(EXE_DIR)/$(PROJECTNAME).out $(EXE_DIR)/$(PROJECTNAME).bin
+	$(OBJCOPY) -O ihex $(EXE_DIR)/$(PROJECTNAME).out $(EXE_DIR)/$(PROJECTNAME).hex
 # Uncomment next line to produce assembly listing of entire program
 #	$(DUMP) -h -S -C $(EXE_DIR)/$(PROJECTNAME).out>$(LST_DIR)/$(PROJECTNAME)out.lst
 

@@ -8,11 +8,9 @@
 #include <stdint.h>
 
 typedef struct {
-	uint32_t jumptable;
+	uint32_t *jumptable;
 	uint32_t u0rxdata;
 } tSharedData;
 
 extern tSharedData theshareddata;
-
-extern void (* const jumptable[])(void);
 

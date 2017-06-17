@@ -22,6 +22,8 @@
 #include "em_leuart.h"
 #include "em_rtc.h"
 
+#include "bsp.h"
+
 #include "bl_launcher.h"
 #include "interconnect.h"
 
@@ -56,7 +58,7 @@ void initLeuart(void)
                    LEUART_ROUTE_LOCATION_LOC0;
 
   /* Enable TX Completion and RX Data */
-  LEUART_IntEnable(LEUART0, LEUART_IEN_RXDATAV);
+  // LEUART_IntEnable(LEUART0, LEUART_IEN_RXDATAV);
 
   /* Enable GPIO for LEUART0. TX is on C6 */
   GPIO_PinModeSet(gpioPortD,                /* GPIO port */
@@ -70,18 +72,18 @@ void initLeuart(void)
                  1);                       /* High idle state */
 
   /* Enable LEUART interrupt vector in NVIC */
-  NVIC_EnableIRQ(LEUART0_IRQn);
+  // NVIC_EnableIRQ(LEUART0_IRQn);
 }
 
-// Check for valid data, and if so clear it by pulling it out.
+// Clear the IRQ.  Forth will wake and collect the data.
 void LEUART0_IRQHandler(void) {
 	/* Store and reset pending interupts */
 	uint32_t leuartif = LEUART_IntGet(LEUART0);
  	LEUART_IntClear(LEUART0, leuartif);
   
-	if ( leuartif & LEUART_IEN_RXDATAV ) {
-		theshareddata.u0rxdata = LEUART0->RXDATAX;
-	}
+	//if ( leuartif & LEUART_IEN_RXDATAV ) {
+	//	theshareddata.u0rxdata = LEUART0->RXDATAX;
+	//}
   	count_leuart_irqs++;
 }
 
@@ -113,10 +115,10 @@ void setupRtc(void)
   RTC_IntEnable(RTC_IF_COMP0);
 
   /* Enable RTC interrupt vector in NVIC */
-  NVIC_EnableIRQ(RTC_IRQn);
+  // NVIC_EnableIRQ(RTC_IRQn);
 
   /* Enable RTC */
-  RTC_Enable(true);
+  // RTC_Enable(true);
 }
 
 void RTC_IRQHandler(void)
@@ -145,29 +147,36 @@ int main(void)
   CHIP_Init();
 
   /* Start LFXO, and use LFXO for low-energy modules */
-  CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
+  // CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
   CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
 
   /* Enabling clocks, all other remain disabled */
   CMU_ClockEnable(cmuClock_CORELE, true);     /* Enable CORELE clock */
-  CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
+  // CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
-  CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
+  // CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
+
+  /* Initialize LED driver */
+  BSP_LedsInit();
 
   /* Re-config the HFRCO to the low band */
-  CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
+  // CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
 
   /* Initialize LEUART */
   initLeuart();
 
   SayHello();
 
-  LaunchUserAppNoNVIC( (long unsigned int *) 0x2000);
+  // Let Forth set its own stack pointer.
+  LaunchUserAppNoSP( (long unsigned int *) 0x2000, (uint32_t *) &theshareddata);
 
   /* Infinite blink loop */
   while (1)
   {
-    // BSP_LedToggle(0);
-	; // Delay(100);
+    BSP_LedToggle(0);
+	int i;
+	for ( i = 0; i < 10000; i++ ) { ; }
+	//Delay(100);
   }
+
 }
