@@ -32,6 +32,7 @@ LST_DIR = lst
 # DO NOT add trailing whitespace chars, they do matter !
 WINDOWSCS  ?= GNU Tools ARM Embedded\4.8 2013q4
 LINUXCS    ?= ~/gcc-arm-none-eabi-6-2017-q1-update
+#LINUXCS    ?= ~/gcc-arm-none-eabi-4_8-2014q3
 
 RMDIRS     := rm -rf
 RMFILES    := rm -rf
@@ -99,7 +100,7 @@ DEPFLAGS = -MMD -MP -MF $(@:.o=.d)
 #
 override CFLAGS += -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m3 -mthumb \
 -mfix-cortex-m3-ldrd -ffunction-sections \
--fdata-sections -fomit-frame-pointer -DDEBUG_EFM  \
+-fdata-sections -fomit-frame-pointer -DDEBUG_EFM  --specs=nano.specs \
 $(DEPFLAGS)
 
 override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=cortex-m3 -mthumb -DDEBUG_EFM 
