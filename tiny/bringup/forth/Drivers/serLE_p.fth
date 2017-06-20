@@ -10,6 +10,7 @@
 \ ********************
 
 $8 equ LEUART_STATUS
+bit4 equ LEUART_STATUS_TXBL
 bit5 equ LEUART_STATUS_RXDATAV
 
 $1C equ LEUART_RXDATA
@@ -25,7 +26,7 @@ internal
 : (seremit)	\ char base --
 \ *G Transmit a character on the given UART.
   begin
-    dup LEUART_STATUS + @ bit4 and 		\ Tx FIFO full test
+    dup LEUART_STATUS + @ LEUART_STATUS_TXBL and \ Tx FIFO full test
   until
   LEUART_TXDATA + !
 ;
