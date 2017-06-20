@@ -43,17 +43,17 @@ internal
   $0D over (seremit)  $0A swap (seremit)
 ;
 
-: (serkey?)	\ base -- t/f
+: (serkey?)	\ -- t/f
 \ *G Return true if the IRQ handler has dropped off a payload.
    icroot @ u0rxdata @ -1 <> \ Rx 
 ;
 
-: (serkey)	\ base -- char
+: (serkey)	\ -- char
 \ *G Wait for a character to come available on the given UART and
 \ ** return the character.
   begin
    (serkey?) 
-   \ dup false if [ tasking? ] [if]  pause  [else] [asm wfi asm] [then] then 
+   dup false = if [ tasking? ] [if]  pause  [else] [asm wfi asm] [then] then 
   until
   di
   icroot @ u0rxdata dup 
