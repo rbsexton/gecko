@@ -58,7 +58,7 @@ void initLeuart(void)
                    LEUART_ROUTE_LOCATION_LOC0;
 
   /* Enable TX Completion and RX Data */
-  // LEUART_IntEnable(LEUART0, LEUART_IEN_RXDATAV);
+  LEUART_IntEnable(LEUART0, LEUART_IEN_RXDATAV);
 
   /* Enable GPIO for LEUART0. TX is on C6 */
   GPIO_PinModeSet(gpioPortD,                /* GPIO port */
@@ -72,7 +72,7 @@ void initLeuart(void)
                  1);                       /* High idle state */
 
   /* Enable LEUART interrupt vector in NVIC */
-  // NVIC_EnableIRQ(LEUART0_IRQn);
+  NVIC_EnableIRQ(LEUART0_IRQn);
 }
 
 // Clear the IRQ.  Forth will wake and collect the data.
@@ -81,9 +81,10 @@ void LEUART0_IRQHandler(void) {
 	uint32_t leuartif = LEUART_IntGet(LEUART0);
  	LEUART_IntClear(LEUART0, leuartif);
   
-	//if ( leuartif & LEUART_IEN_RXDATAV ) {
-	//	theshareddata.u0rxdata = LEUART0->RXDATAX;
-	//}
+	if ( leuartif & LEUART_IEN_RXDATAV ) {
+		theshareddata.u0rxdata = LEUART0->RXDATAX;
+		// LEUART0->TXDATA = theshareddata.u0rxdata; // An echo check.
+	}
   	count_leuart_irqs++;
 }
 

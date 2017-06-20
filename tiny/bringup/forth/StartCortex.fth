@@ -77,7 +77,10 @@ init-s0 tos-cached? sp-guard + cells -
   equ real-init-s0	\ -- addr
 \ The data stack pointer set at start up.
 
-0 value icroot
+
+udata \ This has got to be part of udata
+create icroot 4 allot \ Values are cleaner, but they're part of IDATA..
+cdata
 
 internal
 
@@ -97,10 +100,10 @@ end-code
     2 control sys!			\ switch to SP_process
     REAL-INIT-S0 set-sp			\ Allow for cached TOS and guard space
 
-    \ get_icroot to icroot  
+    get_icroot \ Do this before anything else tampers with R0.
+    icroot ! 
 
     INIT-U0 up!				\ USER area
-    INIT-DP @ dp ! 
     CLD1 @ execute
   again
 ;

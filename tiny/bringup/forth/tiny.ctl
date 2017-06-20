@@ -226,7 +226,8 @@ external
 
 include %AppDir%/interconnect 
 
-include %DriverDir%/serLE_p \ polling serial driver
+\ include %DriverDir%/serLE_p \ polling serial driver
+include %DriverDir%/serLE_pi  \ polling serial that wakes after IRQ.
 
 include %AppDir%/startup
 \ ' hex AtCold
