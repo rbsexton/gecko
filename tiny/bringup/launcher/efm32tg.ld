@@ -177,16 +177,6 @@ SECTIONS
     __bss_end__ = .;
   } > RAM
 
-  .heap (COPY):
-  {
-    __HeapBase = .;
-    __end__ = .;
-    end = __end__;
-    _end = __end__;
-    KEEP(*(.heap*))
-    __HeapLimit = .;
-  } > RAM
-
   /* .stack_dummy section doesn't contains any symbols. It is only
    * used for linker to calculate size of stack sections, and assign
    * values to stack symbols later */
