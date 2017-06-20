@@ -47,10 +47,6 @@ uint8_t rb_storage_in[CHANNELS][RBPAYLOAD_IN];
 #define RBPAYLOAD_OUT 64 
 uint8_t rb_storage_out[CHANNELS][RBPAYLOAD_OUT];
 
-// When a client requests wakeup, we need to remember.
-long *wake_OUT[CHANNELS];
-long *wake_IN[CHANNELS];
-
 // Counters.
 unsigned count_usb_xmit_packets;
 unsigned count_usb_xmit_bytes;
@@ -58,11 +54,11 @@ unsigned count_usb_xmit_bytes;
 unsigned count_recv_packets;
 unsigned count_recv_bytes;
 
-unsigned count_syscalls_putchar[2];
-unsigned count_syscalls_putstring[2];
-unsigned count_syscalls_putstring_bytes[2];
-unsigned count_syscalls_getchar[2];
-unsigned count_syscalls_eol[2];
+unsigned count_syscalls_putchar[CHANNELS];
+unsigned count_syscalls_putstring[CHANNELS];
+unsigned count_syscalls_putstring_bytes[CHANNELS];
+unsigned count_syscalls_getchar[CHANNELS];
+unsigned count_syscalls_eol[CHANNELS];
 
 
 /**************************************************************************//**
@@ -145,7 +141,7 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
 	uint32_t xferred, uint32_t remaining, int channel);
 
-static int UsbDataReceivedU0(USB_Status_TypeDef status,
+static int (USB_Status_TypeDef status,
  		uint32_t xferred, uint32_t remaining) {		
 	return(UsbDataReceivedMeta(status, xferred, remaining, 0));
 	}
@@ -248,6 +244,7 @@ int CDC_SetupCmd(const USB_Setup_TypeDef *setup)
     switch (setup->bRequest)
     {
     case USB_CDC_GETLINECODING:
+	  /* Provide them with a fiction */ 
       /********************/
       if ( ( setup->wValue    == 0                     ) &&
            ( setup->wIndex    == CDC_CTRL_INTERFACE_NO ) && /* Interface no. */
@@ -395,11 +392,6 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 		while ( xferred-- ) ringbuffer_addchar(rb, usbRxBuffer[channel][usbRxIndex][i++]);
 		}
 	
-	// See if there is a wake request
-	if ( wake_OUT[channel] ) {
-		*wake_OUT[channel] |= 1; // Set the run bit.
-		wake_OUT[channel] = 0;
-		}	
 	// uint32_t i;
 	
 	// USBD_Write(CDC_EP_DATA_IN, (void*) usbRxBuffer[ usbRxIndex ],
@@ -563,8 +555,8 @@ uint32_t USBGetChar(uint32_t usbstream, long *tcb) {
 	if ( ringbuffer_used(rb) ) return(ringbuffer_getchar(rb));
 	else {
 		if ( tcb ) {
-			wake_OUT[usbstream] = tcb + 2; // Go ahead and correct the pointer.
-			tcb[2] &= ~1; // Clear the run bit
+			// wake_OUT[usbstream] = tcb + 2; // Go ahead and correct the pointer.
+			// tcb[2] &= ~1; // Clear the run bit
 			}
 		return(-1);
 		}
