@@ -82,8 +82,8 @@ Stamp? 0= [if] +xrefs [then]	\ enable cross references
 \ to leave room for the launcher
 
   $0000:2000 $0000:FFFF cdata section Tiny	\ code section in boot Flash
-  $2000:0A00 $2000:0AFF idata section PROGd	\  IDATA
-  $2000:0B00 $2000:0FFF udata section PROGu	\  UDATA
+  $2000:0400 $2000:04FF idata section PROGd	\  IDATA
+  $2000:0500 $2000:0FFF udata section PROGu	\  UDATA
 
 interpreter
 : prog Tiny ;			\ synonym
