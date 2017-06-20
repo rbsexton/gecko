@@ -163,7 +163,7 @@ cell equ cell				\ size of a cell (16 bits)
   include %CpuDir%/StackDef		\ Reserve default task and stacks
   PROGd  sec-top 1+ equ UNUSED-TOP  PROG	\ top of memory for UNUSED
   
-  include %CpuDir%/StartCortex		\ basic Cortex-M3 startup code
+  include %AppDir%/StartCortex		\ basic Cortex-M3 startup code
   include %CpuDir%/CodeCortex		\ low level kernel definitions
   include %CommonDir%/kernel62          \ high level kernel definitions
   include %CommonDir%/Devtools		\ DUMP .S etc development tools
