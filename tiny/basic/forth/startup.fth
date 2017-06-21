@@ -11,7 +11,8 @@
 	." StartApp!  " 
 	." ICRoot@" icroot @ . cr
 	\ $100 0 do icroot @ u0rxdata @ . loop cr 
+	4 SCSSCR _SCS + ! \ Set deepsleep
+	
 		
 ;
-
 

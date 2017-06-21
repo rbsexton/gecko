@@ -7,6 +7,6 @@ hex
 \ 400C8000 constant _CMU
 \ 400C6000 constant _EMU
 40084000 constant _LEUART0
-\ 40080000 constant _RTC
+40080000 constant _RTC
 
 decimal
