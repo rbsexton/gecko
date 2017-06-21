@@ -40,28 +40,28 @@ uint32_t rtcCountBetweenWakeup;
 /* Set up RTC init struct*/
 const RTC_Init_TypeDef rtcInit =
 {
-  .debugRun = false,
-  .comp0Top = true,
+  .debugRun = true,
+  .comp0Top = false,
   .enable   = true,
 };
 
-void setupRtc(void)
+void setupRTC(void)
 {
   /* Input RTC init struct in initialize funciton */
   RTC_Init(&rtcInit);
 
   /* Set RTC compare value */
-  rtcCountBetweenWakeup = 32768;
-  RTC_CompareSet(0, rtcCountBetweenWakeup);
+  // rtcCountBetweenWakeup = 32768;
+  // RTC_CompareSet(0, rtcCountBetweenWakeup);
 
   /* Enable RTC interrupt from COMP0 */
-  RTC_IntEnable(RTC_IF_COMP0);
+  // RTC_IntEnable(RTC_IF_COMP0);
 
   /* Enable RTC interrupt vector in NVIC */
   // NVIC_EnableIRQ(RTC_IRQn);
 
   /* Enable RTC */
-  // RTC_Enable(true);
+  RTC_Enable(true);
 }
 
 void RTC_IRQHandler(void)
@@ -101,26 +101,33 @@ int main(void)
   CMU_ClockEnable(cmuClock_HFPER, true);
  
   /* Start LFXO, and use LFXO for low-energy modules */
-  // CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);
-  CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO);
+  CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO); // RTC
+  CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO); // LEUART
+
 
   /* Enabling clocks, all other remain disabled */
   CMU_ClockEnable(cmuClock_CORELE, true);     /* Enable CORELE clock */
   CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
-  // CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
+
+  CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
+
+  // Setup the LFB Clock dividers.
+  CMU->LFAPRESC0 = (11 << _CMU_LFAPRESC0_RTC_SHIFT);
 
   /* Initialize LED driver */
   // BSP_LedsInit(); // This appears to be bloatware.
 
   /* Re-config the HFRCO to the low band */
-  CMU_HFRCOBandSet(cmuHFRCOBand_1MHz); 
+  CMU_HFRCOBandSet(cmuHFRCOBand_14MHz); 
 
   /* Initialize LEUART */
   initLeuart();
   console_leuart_init();
 
   SayHello();
+
+  setupRTC();
 
   // Let Forth set its own stack pointer.
   LaunchUserAppNoSP( (long unsigned int *) 0x2000, (uint32_t *) &theshareddata);
