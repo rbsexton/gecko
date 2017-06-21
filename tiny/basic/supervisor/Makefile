@@ -14,7 +14,7 @@ uniq = $(strip $(if $1,$(firstword $1) \
        $(call uniq,$(filter-out $(firstword $1),$1))))
 
 DEVICE = EFM32TG840F32
-PROJECTNAME = launcher
+PROJECTNAME = supervisor
 SDKROOT= /Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
 CM3LIB= ../../../../cm3lib
 
@@ -138,7 +138,7 @@ $(SDKROOT)/emlib/src/em_system.c \
 $(SDKROOT)/emlib/src/em_leuart.c \
 $(SDKROOT)/emlib/src/em_rtc.c \
 $(SDKROOT)/kits/common/bsp/bsp_stk_leds.c \
-../launcher.c ../interconnect.c
+../supervisor.c ../interconnect.c
 
 s_SRC += 
 
