@@ -27,8 +27,7 @@ c" ."    	setmacro AppDir		\ where application code lives
 
 c" ./Drivers" setmacro DriverDir \ Driver Code
 
-c" ../../../cm3forthtools/"    setmacro LocalCM3	\ Cortex-M common forth 
-
+c" ../../../../cm3forthtools/"    setmacro LocalCM3	\ Cortex-M common forth 
 
 \ ***************************************
 \ Load compiler extensions such as macros
@@ -131,8 +130,8 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
 
 \ Kernel components
  1 equ ColdChain?		\ nz to use cold chain mechanism
- 0 equ tasking?			\ true if multitasker needed
-   #16 cells equ tcb-size		\   for internal consistency check
+ 1 equ tasking?			\ true if multitasker needed
+   #6 cells equ tcb-size		\   for internal consistency check
    0 equ event-handler?		\   true to include event handler
    0 equ message-handler?	\   true to include message handler
    0 equ semaphores?		\ true to include semaphores
@@ -176,7 +175,8 @@ cell equ cell				\ size of a cell (16 bits)
   \ include %SPDir%/dylink     		\ Runtime Linking
 
   \ include %LocalCM3%/bitband
-  \ include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
+  include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
+  include %LocalCM3%/Pause          \ Customized Pause
   include %AppDir%/TinyGecko		\ Various Addresses
 
 timebase? [if]
