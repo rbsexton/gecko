@@ -17,7 +17,7 @@ DEVICE = EFM32TG840F32
 PROJECTNAME = supervisor
 SDKROOT= /Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
 CM3LIB= ../../../../cm3lib
-
+SAPI=../../../../sockpuppet/sapi
 
 OBJ_DIR = build
 EXE_DIR = exe
@@ -115,8 +115,9 @@ override LDFLAGS += -Xlinker -Map=$(LST_DIR)/$(PROJECTNAME).map -mcpu=cortex-m3 
 LIBS = -Wl,--start-group -lgcc -lnosys -lc -Wl,--end-group
 
 INCLUDEPATHS += \
--I.. \
+-I. \
 -I$(CM3LIB)/ \
+-I$(SAPI) \
 -I$(SDKROOT)/CMSIS/Include \
 -I$(SDKROOT)/Device/SiliconLabs/EFM32TG/Include \
 -I$(SDKROOT)/emlib/inc \
@@ -138,13 +139,15 @@ $(SDKROOT)/emlib/src/em_system.c \
 $(SDKROOT)/emlib/src/em_leuart.c \
 $(SDKROOT)/emlib/src/em_rtc.c \
 $(SDKROOT)/kits/common/bsp/bsp_stk_leds.c \
-../supervisor.c ../interconnect.c
+$(CM3LIB)/ringbuffer.c \
+ ./supervisor.c ./interconnect.c ./systemcalls.c ./console_leuart.c 
 
 s_SRC += 
 
 S_SRC +=  \
 $(SDKROOT)/Device/SiliconLabs/EFM32TG/Source/GCC/startup_efm32tg.S \
-$(CM3LIB)/bl_launcher.S
+$(CM3LIB)/bl_launcher.S ./testsyscall.S \
+${SAPI}/svchandler.S 
 
 ####################################################################
 # Rules                                                            #

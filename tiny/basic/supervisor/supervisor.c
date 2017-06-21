@@ -26,67 +26,9 @@
 
 #include "bl_launcher.h"
 #include "interconnect.h"
-
-// -----------------------------------------------------------------------
-// -----------------------------------------------------------------------
-// LEUART Code.
-// -----------------------------------------------------------------------
-// -----------------------------------------------------------------------
-/* LEUART1 initialization data */
-const LEUART_Init_TypeDef leuart0Init =
-{
-  .enable   = leuartEnable,       /* Activate data reception on LEUn_TX pin. */
-  .refFreq  = 0,                    /* Inherit the clock frequenzy from the LEUART clock source */
-  .baudrate = 9600,                 /* Baudrate = 9600 bps */
-  .databits = leuartDatabits8,      /* Each LEUART frame containes 8 databits */
-  .parity   = leuartNoParity,       /* No parity bits in use */
-  .stopbits = leuartStopbits1,      /* Setting the number of stop bits in a frame to 2 bitperiods */
-};
+#include "console_leuart.h"
 
 // ------------- Statistics ------------------
-int count_leuart_irqs = 0;
-
-// The Tiny Gecko board also has the LEUART on PD4 & PD5
-void initLeuart(void)
-{
-  /* Reseting and initializing LEUART1 */
-  LEUART_Reset(LEUART0);
-  LEUART_Init(LEUART0, &leuart0Init);
-
-  /* Route LEUART0 TX pin to DMA location 0 */
-  LEUART0->ROUTE = LEUART_ROUTE_TXPEN | LEUART_ROUTE_RXPEN |
-                   LEUART_ROUTE_LOCATION_LOC0;
-
-  /* Enable TX Completion and RX Data */
-  LEUART_IntEnable(LEUART0, LEUART_IEN_RXDATAV);
-
-  /* Enable GPIO for LEUART0. TX is on C6 */
-  GPIO_PinModeSet(gpioPortD,                /* GPIO port */
-                  4,                        /* GPIO port number */
-                  gpioModePushPull,         /* Pin mode is set to push pull */
-                  1);                       /* High idle state */
-
-  GPIO_PinModeSet(gpioPortD,                /* GPIO port */
-                 5,                        /* GPIO port number */
-                 gpioModeInputPull,         /* Pin mode is set to push pull */
-                 1);                       /* High idle state */
-
-  /* Enable LEUART interrupt vector in NVIC */
-  NVIC_EnableIRQ(LEUART0_IRQn);
-}
-
-// Clear the IRQ.  Forth will wake and collect the data.
-void LEUART0_IRQHandler(void) {
-	/* Store and reset pending interupts */
-	uint32_t leuartif = LEUART_IntGet(LEUART0);
- 	LEUART_IntClear(LEUART0, leuartif);
-  
-	if ( leuartif & LEUART_IEN_RXDATAV ) {
-		theshareddata.u0rxdata = LEUART0->RXDATAX;
-		// LEUART0->TXDATA = theshareddata.u0rxdata; // An echo check.
-	}
-  	count_leuart_irqs++;
-}
 
 // -----------------------------------------------------------------------
 // -----------------------------------------------------------------------
@@ -133,11 +75,17 @@ void RTC_IRQHandler(void)
 // Boot Message
 // -----------------------------------------------------------------------
 // -----------------------------------------------------------------------
+extern bool PutChar(int, int, uint32_t );
 const char message[] = "Boot! ";
 void SayHello() {
 	const char *p = message;
-	while(*p) LEUART_Tx(LEUART0,*p++);
+	while(*p) {
+		// LEUART_Tx(LEUART0,*p++);
+		// console_leuart_putchar(*p++,0);
+		PutChar(0,*p++,0); // No TCB.
+		}
 	}
+
 
 /**************************************************************************//**
  * @brief  Main function
@@ -170,6 +118,7 @@ int main(void)
 
   /* Initialize LEUART */
   initLeuart();
+  console_leuart_init();
 
   SayHello();
 

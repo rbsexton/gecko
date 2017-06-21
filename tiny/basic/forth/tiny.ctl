@@ -28,6 +28,8 @@ c" ."    	setmacro AppDir		\ where application code lives
 c" ./Drivers" setmacro DriverDir \ Driver Code
 
 c" ../../../../cm3forthtools/"    setmacro LocalCM3	\ Cortex-M common forth 
+c" ../../../../sockpuppet/forth"    setmacro SAPIDir       \  Low-Level SAPI stuff.
+
 
 \ ***************************************
 \ Load compiler extensions such as macros
@@ -154,6 +156,7 @@ cell equ cell				\ size of a cell (16 bits)
 0 equ false
 -1 equ true
 
+1 equ SAPIWakeSupport?
 
 \ ************
 \ *S Kernel files
@@ -169,7 +172,8 @@ cell equ cell				\ size of a cell (16 bits)
   \ include %CommonDir%/Voctools		\ ORDER VOCS etc
   include %CommonDir%/methods		\ target support for methods
   \ include %CpuDir%/LocalCM3		\ local variables
- 
+
+  include %SAPIDir%/SysCalls            \ System Calls.  Define these early.
 
   \ include %SPDir%/SAPI-Core     	\ Core SAPI functions.
   \ include %SPDir%/dylink     		\ Runtime Linking
@@ -227,7 +231,9 @@ external
 include %AppDir%/interconnect 
 
 \ include %DriverDir%/serLE_p \ polling serial driver
-include %DriverDir%/serLE_pi  \ polling serial that wakes after IRQ.
+\ include %DriverDir%/serLE_pi  \ polling serial that wakes after IRQ.
+include %SAPIDir%/serCM3_SAPI-level1 \ Sockpuppet calls.
+
 
 include %AppDir%/startup
 \ ' hex AtCold
