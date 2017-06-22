@@ -42,7 +42,6 @@ void forth_thread_stop(sIOBlockingData *s) {
 
 void forth_thread_restart(sIOBlockingData *s) {			
 	s->tcb[2] |= 1;
-	s->tcb = 0;
 	}
 
 
