@@ -82,7 +82,7 @@ Stamp? 0= [if] +xrefs [then]	\ enable cross references
 \ We own the whole thing, but we have to start at a 1k boundary.
 \ to leave room for the launcher
 
-  $0000:2000 $0000:FFFF cdata section Tiny	\ code section in boot Flash
+  $0000:2000 $0000:7FFF cdata section Tiny	\ code section in boot Flash
   $2000:0400 $2000:06FF idata section PROGd	\  IDATA - New words live here.
   $2000:0700 $2000:0FFF udata section PROGu	\  UDATA
 
