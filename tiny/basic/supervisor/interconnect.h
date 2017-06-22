@@ -13,4 +13,5 @@ typedef struct {
 } tSharedData;
 
 extern tSharedData theshareddata;
+extern void (* const jumptable[])(void);
 

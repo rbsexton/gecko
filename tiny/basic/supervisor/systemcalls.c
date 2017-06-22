@@ -11,10 +11,18 @@
 
 #include "console_leuart.h"
 
-long* __SAPI_01_GetRuntimeData(int i) {
-	if ( i == 0 ) return(0);
-	else return(0);
-}
+#include "interconnect.h"
+
+void* __SAPI_01_GetRuntimeData(int i) {
+	switch(i) {
+		case 0: 
+			return(0);
+		case 1:
+			return((void* )&jumptable);
+		default:
+			return(0);
+		}
+	}
 
 extern RINGBUF rb_IN;
 
