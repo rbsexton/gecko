@@ -122,10 +122,10 @@ void LEUART0_IRQHandler(void) {
 			
 			// See if thats the last char, and if so, re-start.
 			if ( used == 0 && \
-			 	s->blocked_tx == true && \
-				s->tcb ) {
+			 	s->blocked_tx == true ) {
 				s->blocked_tx = false;
-				forth_thread_restart(s);
+				
+				if ( s->tcb ) forth_thread_restart(s);
 				}
 			}				
 		}
@@ -181,7 +181,7 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 			connection_state[0].blocked_tx = true;
 			connection_state[0].blocked_count_tx++;
 			
-			forth_thread_stop(&connection_state[0]);
+			if ( tcb ) forth_thread_stop(&connection_state[0]);
 			}
 		return(true);		
 		}
@@ -202,11 +202,11 @@ int console_leuart_charsavailable() {
 int console_leuart_getchar(unsigned long *tcb) {
 	int result = ringbuffer_getchar(&rb_rx);
 	
-	if ( result == -1 && tcb ) {
+	if ( result == -1 ) {
 		connection_state[0].tcb = tcb;
 		connection_state[0].blocked_rx = true;
 		connection_state[0].blocked_count_rx++;		
-		forth_thread_stop(&connection_state[0]);
+		if ( tcb ) forth_thread_stop(&connection_state[0]);
 		}
 	
 	return(result);
