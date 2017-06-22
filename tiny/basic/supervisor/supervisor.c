@@ -23,6 +23,8 @@
 #include "em_rtc.h"
 
 #include "bsp.h"
+#include "segmentlcd.h"
+#include "segmentlcdconfig.h"
 
 #include "bl_launcher.h"
 #include "interconnect.h"
@@ -109,11 +111,18 @@ int main(void)
   CMU_ClockEnable(cmuClock_CORELE, true);     /* Enable CORELE clock */
   CMU_ClockEnable(cmuClock_GPIO, true);       /* Enable GPIO clock */
   CMU_ClockEnable(cmuClock_LEUART0, true);    /* Enable LEUART0 clock */
+  CMU_ClockEnable(cmuClock_LCD, true);        /* Enable LCD clock */
 
   CMU_ClockEnable(cmuClock_RTC, true);        /* Enable RTC clock */
 
   // Setup the LFB Clock dividers.
   CMU->LFAPRESC0 = (11 << _CMU_LFAPRESC0_RTC_SHIFT);
+
+	setupRTC();
+	
+	/* Initialize LCD driver */
+  	SegmentLCD_Init(false);
+    SegmentLCD_Write("Hello2");
 
   /* Initialize LED driver */
   // BSP_LedsInit(); // This appears to be bloatware.
@@ -127,7 +136,7 @@ int main(void)
 
   SayHello();
 
-  setupRTC();
+
 
   // Let Forth set its own stack pointer.
   LaunchUserAppNoSP( (long unsigned int *) 0x2000, (uint32_t *) &theshareddata);

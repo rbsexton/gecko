@@ -123,6 +123,7 @@ INCLUDEPATHS += \
 -I$(SDKROOT)/emlib/inc \
 -I$(SDKROOT)/kits/common/bsp \
 -I$(SDKROOT)/kits/EFM32TG_STK3300/config \
+-I$(SDKROOT)/kits/common/drivers \
 -I../../../config
 
 ###################################################################
@@ -135,9 +136,11 @@ $(SDKROOT)/emlib/src/em_assert.c \
 $(SDKROOT)/emlib/src/em_cmu.c \
 $(SDKROOT)/emlib/src/em_emu.c \
 $(SDKROOT)/emlib/src/em_gpio.c \
+$(SDKROOT)/emlib/src/em_lcd.c \
 $(SDKROOT)/emlib/src/em_system.c \
 $(SDKROOT)/emlib/src/em_leuart.c \
 $(SDKROOT)/emlib/src/em_rtc.c \
+$(SDKROOT)/kits/common/drivers/segmentlcd.c \
 $(SDKROOT)/kits/common/bsp/bsp_stk_leds.c \
 $(CM3LIB)/ringbuffer.c \
  ./supervisor.c ./interconnect.c ./systemcalls.c ./console_leuart.c 
@@ -172,7 +175,7 @@ vpath %.S $(S_PATHS)
 # Default build is debug build
 all:      debug
 
-debug:    CFLAGS += -DDEBUG -O2 -g
+debug:    CFLAGS += -DDEBUG -Os -g
 debug:    $(EXE_DIR)/$(PROJECTNAME).bin
 
 release:  CFLAGS += -DNDEBUG -O0 -g 

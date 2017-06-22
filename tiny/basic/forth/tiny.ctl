@@ -132,7 +132,7 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
 
 \ Kernel components
  1 equ ColdChain?		\ nz to use cold chain mechanism
- 1 equ tasking?			\ true if multitasker needed
+ 0 equ tasking?			\ true if multitasker needed
    #6 cells equ tcb-size		\   for internal consistency check
    0 equ event-handler?		\   true to include event handler
    0 equ message-handler?	\   true to include message handler
@@ -153,10 +153,8 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
 \ *****************
 
 cell equ cell				\ size of a cell (16 bits)
-0 equ false
--1 equ true
 
-1 equ SAPIWakeSupport?
+1 equ SAPIWakeSupport? \ System calls wrappers should pass UP.
 
 \ ************
 \ *S Kernel files
@@ -179,8 +177,8 @@ cell equ cell				\ size of a cell (16 bits)
   \ include %SPDir%/dylink     		\ Runtime Linking
 
   \ include %LocalCM3%/bitband
-  include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
-  include %LocalCM3%/Pause          \ Customized Pause
+  \ include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
+  \ include %LocalCM3%/Pause          \ Customized Pause
   include %AppDir%/TinyGecko		\ Various Addresses
 
 timebase? [if]

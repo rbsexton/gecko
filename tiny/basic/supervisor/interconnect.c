@@ -14,10 +14,27 @@
 
 // Lie!
 extern void EMU_EnterEM2();
-extern int main();
+
+extern void SegmentLCD_Write();
+extern void SegmentLCD_AllOn(); 
+extern void SegmentLCD_AllOff();
+extern void SegmentLCD_AlphaNumberOff();
+extern void SegmentLCD_Number();
+extern void SegmentLCD_NumberOff();
+extern void SegmentLCD_ARing();
+extern void SegmentLCD_Battery(); 
+extern void SegmentLCD_Symbol();
 
 void (* const jumptable[])(void) = {
-	EMU_EnterEM2,
+//	SegmentLCD_Write,
+//	SegmentLCD_AlphaNumberOff,
+//	SegmentLCD_Number,
+//	SegmentLCD_NumberOff,
+//	SegmentLCD_Symbol,
+//	SegmentLCD_AllOff,
+//	SegmentLCD_AllOn, 
+//	SegmentLCD_ARing,
+//	SegmentLCD_Battery, 
 	};
 
 
