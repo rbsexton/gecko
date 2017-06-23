@@ -156,6 +156,10 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
 cell equ cell				\ size of a cell (16 bits)
 
 1 equ SAPIWakeSupport? \ System calls wrappers should pass UP.
+1 equ Skinny? \ Don't use heads for Double-Precision things, and others that are
+\ less useful at the prompt
+
+1 equ NODoubles! \ Leave out non-required words for working with doubles.
 
 \ ************
 \ *S Kernel files
