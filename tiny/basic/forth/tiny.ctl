@@ -45,6 +45,7 @@ include %CpuDir%/Macros
 
 CROSS-COMPILE
 
+
 only forth definitions          \ default search order
 
   Cortex-M3                     \ Thumb-2 processor type and register usage
@@ -132,7 +133,7 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
 
 \ Kernel components
  1 equ ColdChain?		\ nz to use cold chain mechanism
- 0 equ tasking?			\ true if multitasker needed
+ 1 equ tasking?			\ true if multitasker needed
    #6 cells equ tcb-size		\   for internal consistency check
    0 equ event-handler?		\   true to include event handler
    0 equ message-handler?	\   true to include message handler
@@ -177,8 +178,8 @@ cell equ cell				\ size of a cell (16 bits)
   \ include %SPDir%/dylink     		\ Runtime Linking
 
   \ include %LocalCM3%/bitband
-  \ include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
-  \ include %LocalCM3%/Pause          \ Customized Pause
+  include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
+  include %LocalCM3%/Pause          \ Customized Pause
   include %AppDir%/TinyGecko		\ Various Addresses
 
 timebase? [if]
@@ -233,6 +234,7 @@ include %AppDir%/interconnect
 include %SAPIDir%/serCM3_SAPI-level1 \ Sockpuppet calls.
 
 
+include %LocalCM3%/aapcs
 include %AppDir%/startup
 \ ' hex AtCold
 
