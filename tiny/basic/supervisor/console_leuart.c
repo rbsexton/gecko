@@ -107,7 +107,10 @@ void LEUART0_IRQHandler(void) {
 		// See if there is a blocking read 
 		if ( s->blocked_rx ) {
 			s->blocked_rx = false;
-			forth_thread_restart(s);
+			// If there is also a tx block, don't wake.
+			// This should not happen, since first event is blocking.
+			
+			if ( s->tcb ) forth_thread_restart(s);
 			}	 
  		}
 
@@ -189,13 +192,10 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 	
 	// If we're maxing out, tell the caller to yield.
 	if ( free == 0 ) { // Let it fill up.  No flow control chars in the ringbuffer.
-		if ( tcb ) {
-			connection_state[0].tcb = tcb;
-			connection_state[0].blocked_tx = true;
-			connection_state[0].blocked_count_tx++;
-			
-			if ( tcb ) forth_thread_stop(&connection_state[0]);
-			}
+		connection_state[0].tcb = tcb;
+		connection_state[0].blocked_tx = true;
+		connection_state[0].blocked_count_tx++;		
+		if ( tcb ) forth_thread_stop(&connection_state[0]);
 		return(true);		
 		}
 	else return(false);
