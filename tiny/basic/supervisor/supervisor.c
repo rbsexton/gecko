@@ -15,6 +15,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "em_device.h"
 #include "em_chip.h"
 #include "em_cmu.h"
@@ -137,6 +138,8 @@ int main(void)
   SayHello();
 
 
+  // An Ugly, Bare loop to zero Forth's memory.
+  memset((uint32_t *) 0x20000400, 0, (0x20000000 + 4096) - 0x20000400);
 
   // Let Forth set its own stack pointer.
   LaunchUserAppNoSP( (long unsigned int *) 0x2000, (uint32_t *) &theshareddata);
