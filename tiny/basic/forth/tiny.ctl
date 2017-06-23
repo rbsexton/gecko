@@ -253,7 +253,7 @@ end-libs
 cdata
   flush-idata                           \ force IDATA sections to be laid
   					\ NOW, rather than by FINIS
-  here $1FF +  $-0200 and org		\ force to 512 byte boundary for ISP loader
+  here $FF +  $-0100 and org		\ force to 256 byte boundary
 
 decimal
 
