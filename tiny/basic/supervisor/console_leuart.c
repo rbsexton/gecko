@@ -44,6 +44,13 @@ void forth_thread_restart(sIOBlockingData *s) {
 	s->tcb[2] |= 1;
 	}
 
+void console_leuart_spin() {
+	bool busy;
+	do { 
+		busy = (LEUART0->STATUS & LEUART_STATUS_TXBL) == 0 ;
+		} while ( busy );	
+	}
+
 
 /* LEUART1 initialization data */
 const LEUART_Init_TypeDef leuart0Init =
@@ -150,6 +157,12 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 	// If thats happening, we have no choice but to wait.
 	while ( LEUART0->SYNCBUSY ) { ; }
 	
+	// Check for a flush.
+	if ( c == -1 ) {
+		console_leuart_spin();
+		return(false);
+		}
+		
 	// Condition #1 - There is already data in the TX FIFO.
 	// or the FIFO is full.  Add it and check for highwater.
 	uint32_t leuart_status = LEUART0->STATUS;
@@ -228,13 +241,6 @@ bool console_leuart_eol(unsigned long *tcb) {
 void console_leuart_init() {
 	ringbuffer_init(&rb_rx,rb_storage_rx,RX_FIFOSIZE);
 	ringbuffer_init(&rb_tx,rb_storage_tx,RX_FIFOSIZE);			
-	}
-
-void console_leuart_spin() {
-	bool busy;
-	do { 
-		busy = (LEUART0->STATUS & LEUART_STATUS_TXBL) == 0 ;
-		} while ( busy );	
 	}
 
 uint32_t console_leuart_probe() {
