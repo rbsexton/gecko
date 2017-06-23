@@ -150,7 +150,7 @@ s_SRC +=
 S_SRC +=  \
 $(SDKROOT)/Device/SiliconLabs/EFM32TG/Source/GCC/startup_efm32tg.S \
 $(CM3LIB)/bl_launcher.S ./testsyscall.S \
-${SAPI}/svchandler.S 
+${SAPI}/svchandler.S fault_handler_minimal.S
 
 ####################################################################
 # Rules                                                            #
