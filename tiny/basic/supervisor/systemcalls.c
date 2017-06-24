@@ -72,9 +72,8 @@ bool __SAPI_06_EOL(int stream, unsigned long *tcb) {
 	}
 
 // Stubbed out
-unsigned __SAPI_12_SetWakeRequest(int id, unsigned *addr, unsigned mask) {
-	if ( id == 0 ) return(*addr);
-	else return(mask);
+bool __SAPI_12_WakeRequest(tWakeRequestType id, int arg, unsigned long *tcb) {
+	return(false);
 	}
 
 // Stubbed out
@@ -91,7 +90,7 @@ void __SAPI_14_PetWatchdog(unsigned machineticks) {
 }
 
 extern uint32_t rtc_ms;
-unsigned __SAPI_15_GetTimeMS(int kind) {
+unsigned __SAPI_15_GetTime(tTimeType kind) {
 	return(kind);
 	// if (kind == 0) return(0);
 	//else return( (unsigned) &rtc_ms );
