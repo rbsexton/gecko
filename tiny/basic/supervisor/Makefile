@@ -143,7 +143,7 @@ $(SDKROOT)/emlib/src/em_rtc.c \
 $(SDKROOT)/kits/common/drivers/segmentlcd.c \
 $(SDKROOT)/kits/common/bsp/bsp_stk_leds.c \
 $(CM3LIB)/ringbuffer.c \
- ./supervisor.c ./interconnect.c ./systemcalls.c ./console_leuart.c 
+ ./supervisor.c ./interconnect.c ./systemcalls.c ./console_leuart.c le-rtc.c
 
 s_SRC += 
 

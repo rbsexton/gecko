@@ -1,0 +1,1 @@
+void setupRTC(void);
