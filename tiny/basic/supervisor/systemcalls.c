@@ -10,6 +10,7 @@
 #include "syscalls.h"
 
 #include "console_leuart.h"
+#include "le-rtc.h"
 
 #include "interconnect.h"
 
@@ -72,8 +73,8 @@ bool __SAPI_06_EOL(int stream, unsigned long *tcb) {
 	}
 
 // Stubbed out
-bool __SAPI_12_WakeRequest(tWakeRequestType id, int arg, unsigned long *tcb) {
-	return(le_rtc_callback_request(id, arg, tcb));
+bool __SAPI_12_WakeRequest(int id, int arg, unsigned long *tcb) {
+	return( le_rtc_callback_request( (tWakeRequestType) id, arg, tcb));
 	}
 
 // Stubbed out
