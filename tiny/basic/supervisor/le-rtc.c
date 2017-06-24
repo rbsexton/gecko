@@ -2,7 +2,7 @@
 #include "em_device.h"
 #include "em_rtc.h"
 
-#include <le-rtc.h>
+#include "le-rtc.h"
 
 // -----------------------------------------------------------------------
 // -----------------------------------------------------------------------
@@ -38,8 +38,17 @@ void setupRTC(void)
   RTC_Enable(true);
 }
 
+bool le_rtc_callback_request(tWakeRequestType id, int arg, unsigned long *tcb) {
+	return(false);
+	}
+
 void RTC_IRQHandler(void)
 {
   /* Clear interrupt source */
   RTC_IntClear(RTC_IFC_COMP0);
 }
+
+
+
+
+

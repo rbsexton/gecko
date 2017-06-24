@@ -73,7 +73,7 @@ bool __SAPI_06_EOL(int stream, unsigned long *tcb) {
 
 // Stubbed out
 bool __SAPI_12_WakeRequest(tWakeRequestType id, int arg, unsigned long *tcb) {
-	return(false);
+	return(le_rtc_callback_request(id, arg, tcb));
 	}
 
 // Stubbed out
