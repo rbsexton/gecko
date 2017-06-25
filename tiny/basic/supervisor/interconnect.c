@@ -27,9 +27,9 @@ extern void SegmentLCD_Symbol();
 
 void (* const jumptable[])(void) = {
 	SegmentLCD_Write,
-//	SegmentLCD_AlphaNumberOff,
-//	SegmentLCD_Number,
-//	SegmentLCD_NumberOff,
+	SegmentLCD_AlphaNumberOff,
+    SegmentLCD_Number,
+    SegmentLCD_NumberOff,
 //	SegmentLCD_Symbol,
 //	SegmentLCD_AllOff,
 //	SegmentLCD_AllOn, 

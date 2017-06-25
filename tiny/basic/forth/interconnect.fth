@@ -6,9 +6,11 @@ struct /INTER	\ -- size
 	ptr u0rxdata 
 end-struct
 
-: jt icroot @ ; 
-
 struct /jt
-	ptr EnterEM2
-end-struct
+	ptr LCD_Wr
+	ptr LCD_Alpha#Off
+	ptr LCD_#
+	ptr LCD_#Off	
+	end-struct
+	
 
