@@ -29,7 +29,7 @@ void setupRTC(void)
   // RTC_CompareSet(0, rtcCountBetweenWakeup);
 
   /* Enable RTC interrupt from COMP0 */
-  RTC_IntEnable(RTC_IF_COMP0);
+  RTC_IntEnable(RTC_IF_COMP0|RTC_IF_COMP1);
 
   /* Enable RTC interrupt vector in NVIC */
   NVIC_EnableIRQ(RTC_IRQn);
@@ -51,6 +51,7 @@ static inline void forth_thread_restart(uint32_t *tcb) {
 
 typedef struct {
 	unsigned long *tcb;
+	unsigned count;
 	} sCompare;
 
 sCompare callbackinfo[2];
@@ -88,6 +89,8 @@ void RTC_IRQHandler(void) {
 		return;
 		}
 	
+	callbackinfo[ch].count++;
+
 	if ( callbackinfo[ch].tcb ) {
 		forth_thread_restart(callbackinfo[ch].tcb);
 		callbackinfo[ch].tcb = 0;
