@@ -52,14 +52,32 @@ cdata
 : LCD#! ( n -- ) jt LCD_# @ swap call1-- ;
 variable thecount
 
+: wakestart 1 $10 wakereq ; \ Request a wake 
+: wakestop  1   0 wakereq ; \ No more, please. 
+
 : COUNT-WORD
-  1 $10 wakereq \ Request a wake
+  wakestart
   begin
     pause
     thecount dup  @ 1+ dup lcd#! swap ! 
     stop     
   again
 ;
+
+: COUNT-WORDd
+  begin
+    pause self msg? if get-message drop \ We don't care who sent it.
+     case 
+       0 of wakestop endof
+       1 of wakestart endof
+     endcase
+     then
+
+    thecount dup @ 1+ dup lcd#! swap ! 
+    stop     
+  again
+;
+
 
 ((
 task foo 

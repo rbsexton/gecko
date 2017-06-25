@@ -137,7 +137,7 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
  1 equ tasking?			\ true if multitasker needed
    #6 cells equ tcb-size		\   for internal consistency check
    0 equ event-handler?		\   true to include event handler
-   0 equ message-handler?	\   true to include message handler
+   1 equ message-handler?	\   true to include message handler
    0 equ semaphores?		\ true to include semaphores
  0 equ timebase?		\ true for TIMEBASE code
  0 equ softfp?			\ true for software floating point
