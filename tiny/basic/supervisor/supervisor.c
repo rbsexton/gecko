@@ -51,6 +51,14 @@ void SayHello() {
 	}
 
 
+
+const CMU_LFXOInit_TypeDef lfxoInit =
+{
+  .boost = cmuLfxoBoost100,
+  .mode = cmuOscMode_Crystal
+};
+
+
 /**************************************************************************//**
  * @brief  Main function
  *****************************************************************************/
@@ -65,6 +73,9 @@ int main(void)
   CMU_ClockEnable(cmuClock_HFPER, true);
  
   /* Start LFXO, and use LFXO for low-energy modules */
+
+  CMU_LFXOInit(&lfxoInit); 
+
   CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO); // RTC
   CMU_ClockSelectSet(cmuClock_LFB, cmuSelect_LFXO); // LEUART
 
