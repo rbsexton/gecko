@@ -35,7 +35,7 @@ bool __SAPI_02_PutChar(int stream, uint8_t c, unsigned long *tcb) {
 	int ret;
 	switch ( stream ) {
 		default:
-			return(console_leuart_putchar(c, tcb));
+			return(console_leuart_putchar(stream, c, tcb));
 		}
 	}
 
@@ -43,7 +43,7 @@ bool __SAPI_02_PutChar(int stream, uint8_t c, unsigned long *tcb) {
 int __SAPI_03_GetChar(int stream, unsigned long *tcb) {
 	switch ( stream ) {
 		default:
-			return(console_leuart_getchar(tcb));
+			return(console_leuart_getchar(stream,tcb));
 		}
 	}
 
@@ -51,7 +51,7 @@ int __SAPI_03_GetChar(int stream, unsigned long *tcb) {
 int __SAPI_04_GetCharAvail(int stream) {
 	switch ( stream ) {
 		default:
-			return(console_leuart_charsavailable());
+			return(console_leuart_charsavailable(stream));
 		}
 	}
 
