@@ -15,26 +15,33 @@
  * as it'll make flow control easier.
  */
 
-#define RX_FIFOSIZE 32
+// This driver supports one primary UART(0) and one 
+// Virtual uart (1) so that other tasks can 
+// have access to UART output while in the background.
+
+#define RX_FIFOSIZE 16 // Doesn't need to be very big.
 #define TX_FIFOSIZE 32
 
-static uint8_t rb_storage_rx[RX_FIFOSIZE];
-static uint8_t rb_storage_tx[TX_FIFOSIZE];
+static uint8_t rb_storage_rx[2][RX_FIFOSIZE];
+static uint8_t rb_storage_tx[2][TX_FIFOSIZE];
 
-static RINGBUF rb_rx; 
-static RINGBUF rb_tx; 
+RINGBUF rb_rx[2];
+RINGBUF rb_tx[2]; 
+
 typedef struct {
 	unsigned long *tcb;
 	unsigned blocked_count_tx;
 	unsigned blocked_count_rx;
 	unsigned xoff_count;
+	RINGBUF *rb_rx;
+	RINGBUF *rb_tx; 
 	bool blocked_tx;
 	bool blocked_rx;
 	uint8_t pended_fc_char; // Send at the next opportunity.
 	} sIOBlockingData;
 
 // Support multiple descriptors.	
-sIOBlockingData connection_state[1] = { { 0,0,0,0, false, false, 0 }};
+sIOBlockingData connection_state[2];
 
 void forth_thread_stop(sIOBlockingData *s) {			
 	s->tcb[2] &= ~1; // Clear it using the unsafe technique.				
@@ -103,7 +110,7 @@ void LEUART0_IRQHandler(void) {
 	sIOBlockingData *s = &connection_state[0];
   
 	if ( leuartif & LEUART_IEN_RXDATAV ) {
-		ringbuffer_addchar(&rb_rx, LEUART0->RXDATAX);
+		ringbuffer_addchar(s->rb_rx, LEUART0->RXDATAX);
 		// See if there is a blocking read 
 		if ( s->blocked_rx ) {
 			s->blocked_rx = false;
@@ -124,9 +131,9 @@ void LEUART0_IRQHandler(void) {
 			return;
 			}
 						
-		int used = ringbuffer_used(&rb_tx);
+		int used = ringbuffer_used(s->rb_tx);
 		if ( used ) {
-			uint32_t thechar = ringbuffer_getchar(&rb_tx);
+			uint32_t thechar = ringbuffer_getchar(s->rb_tx);
 			LEUART0->TXDATA = thechar;
 			used--;
 			
@@ -152,7 +159,7 @@ void LEUART0_IRQHandler(void) {
 // ------------------------------------------------------------
 static uint32_t pended = 0;
 
-bool console_leuart_putchar(int c,  unsigned long *tcb) {
+bool console_leuart_putchar(int stream, int c,  unsigned long *tcb) {
 
 	pended++;
 
@@ -175,27 +182,27 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 	// Check for an empty HW FIFO and bypass the ring buffer.
 	if ( tx_hw_empty ) {
 		// If the RB is empty, bypass it. 
-		if ( ringbuffer_used(&rb_tx) == 0) { 
+		if ( ringbuffer_used(connection_state[stream].rb_tx) == 0) { 
 			LEUART0->TXDATA = c;
 			}
 		// Otherwise there is something in there, and it needs
 		// to be sent first.
 		else { 
-			int thechar = ringbuffer_getchar(&rb_tx);
+			int thechar = ringbuffer_getchar(connection_state[stream].rb_tx);
 			LEUART0->TXDATA = thechar;
-			ringbuffer_addchar(&rb_tx,c); // Don't check status.  No change.			
+			ringbuffer_addchar(connection_state[stream].rb_tx,c); // Don't check status.  No change.			
 			}
 		return(false);
 		}
 	
-	int free = ringbuffer_addchar(&rb_tx,c);
+	int free = ringbuffer_addchar(connection_state[stream].rb_tx,c);
 	
 	// If we're maxing out, tell the caller to yield.
 	if ( free == 0 ) { // Let it fill up.  No flow control chars in the ringbuffer.
-		connection_state[0].tcb = tcb;
-		connection_state[0].blocked_tx = true;
-		connection_state[0].blocked_count_tx++;		
-		if ( tcb ) forth_thread_stop(&connection_state[0]);
+		connection_state[stream].tcb = tcb;
+		connection_state[stream].blocked_tx = true;
+		connection_state[stream].blocked_count_tx++;		
+		if ( tcb ) forth_thread_stop(&connection_state[stream]);
 		return(true);		
 		}
 	else return(false);
@@ -204,22 +211,22 @@ bool console_leuart_putchar(int c,  unsigned long *tcb) {
 // ------------------------------------------------------------
 // The console charsavailable() call for use with key?
 // ------------------------------------------------------------
-int console_leuart_charsavailable() {
-	return( ringbuffer_used(&rb_rx));
+int console_leuart_charsavailable(int stream) {
+	return( ringbuffer_used(connection_state[stream].rb_rx));
 	}
 
 // ------------------------------------------------------------
 // console getchar().   Return the next character or -1.
 // Supports blocking reads.
 // ------------------------------------------------------------
-int console_leuart_getchar(unsigned long *tcb) {
-	int result = ringbuffer_getchar(&rb_rx);
+int console_leuart_getchar(int stream, unsigned long *tcb) {
+	int result = ringbuffer_getchar(connection_state[stream].rb_rx);
 	
 	if ( result == -1 ) {
-		connection_state[0].tcb = tcb;
-		connection_state[0].blocked_rx = true;
-		connection_state[0].blocked_count_rx++;		
-		if ( tcb ) forth_thread_stop(&connection_state[0]);
+		connection_state[stream].tcb = tcb;
+		connection_state[stream].blocked_rx = true;
+		connection_state[stream].blocked_count_rx++;		
+		if ( tcb ) forth_thread_stop(&connection_state[stream]);
 		}
 	
 	return(result);
@@ -239,12 +246,17 @@ bool console_leuart_eol(unsigned long *tcb) {
 // ------------------------------------------------------------
 // ------------------------------------------------------------
 void console_leuart_init() {
-	ringbuffer_init(&rb_rx,rb_storage_rx,RX_FIFOSIZE);
-	ringbuffer_init(&rb_tx,rb_storage_tx,RX_FIFOSIZE);			
+	int i;
+	for (i=0; i<=1; i++) {
+		connection_state[i].rb_rx = &rb_rx[i];
+		connection_state[i].rb_tx = &rb_tx[i];
+		ringbuffer_init(connection_state[i].rb_rx,rb_storage_rx[i],RX_FIFOSIZE);
+		ringbuffer_init(connection_state[i].rb_tx,rb_storage_tx[i],TX_FIFOSIZE);
+		}
 	}
 
-uint32_t console_leuart_probe() {
+uint32_t console_leuart_probe(int stream) {
 	// return( (uint32_t) &rb_tx);
 	// return(pended);
-	return(ringbuffer_used(&rb_tx));
+	return(ringbuffer_used(connection_state[stream].rb_tx));
 	}
