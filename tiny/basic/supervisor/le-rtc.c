@@ -51,53 +51,46 @@ static inline void forth_thread_restart(uint32_t *tcb) {
 
 typedef struct {
 	unsigned long *tcb;
-	int after;
-	int every;
 	} sCompare;
 
 sCompare callbackinfo[2];
 
+bool le_rtc_callback_request(int id, int arg, unsigned long *tcb) {
+	int ch = id & WAKEREQ_CH_MASK;
+	uint32_t base;
 
-bool le_rtc_callback_request(tWakeRequestType id, int arg, unsigned long *tcb) {
-	uint32_t now = RTC_CounterGet();
-	uint32_t then;
-	switch(id) {
-		case wakerequest_after0:
-			then = now + arg;
-			callbackinfo[0].tcb = tcb;
-			callbackinfo[0].after = arg;
-			if ( arg == 0 ) return(false); // Check for disable.
-			if (tcb) forth_thread_stop(tcb);
-			RTC_CompareSet(0, then);
-			return(true);
-		case wakerequest_every0:
-			then = now + arg;
-			callbackinfo[0].tcb = tcb;
-			callbackinfo[0].every = arg;
-			if ( arg == 0 ) return(false); // Check for disable.
-			if (tcb) forth_thread_stop(tcb);
-			RTC_CompareSet(0, then);
-			return(true);
-		default:
-			return(false);
-		}
+	if ( id & WAKEREQ_RELATIVE_LAST ) base = RTC_CompareGet(ch); 
+	else base = RTC_CounterGet();
+	
+	callbackinfo[ch].tcb = tcb;
+	if ( arg == 0 ) return(false); // Check for disable.
+	if (tcb) forth_thread_stop(tcb);
+	RTC_CompareSet(ch, base+arg);
+	return(true);
 	}
 
 void RTC_IRQHandler(void) {
-  /* Clear interrupt source */
+    /* Don't clear them yet. It'll be cleaner if the IRQ */
+	/* Happens again when there are multiple IRQs */
 	uint32_t ints = RTC_IntGet();
-	RTC_IntClear(ints);
-	if ( (ints & RTC_IFC_COMP0) && callbackinfo[0].tcb ) {
-		uint32_t *tcb = callbackinfo[0].tcb;
-		if (callbackinfo[0].after) callbackinfo[0].after = 0;
-		if (callbackinfo[0].every) {
-			// Eliminate some hazards by incrementing the Comparator 
-			// rather than re-calculating each time.
-			uint32_t this  = RTC_CompareGet(0); 
-			uint32_t then = this + callbackinfo[0].every;
-			RTC_CompareSet(0, then);
-			}		
-		if (tcb) forth_thread_restart(tcb);
+	int ch;
+	// RTC_IntClear(ints);
+	if ( ints & RTC_IFC_COMP0 ) {
+		RTC_IntClear(RTC_IFC_COMP0);
+		ch = 0;
+		}
+	else if ( ints & RTC_IFC_COMP1 ) {
+		RTC_IntClear(RTC_IFC_COMP1);
+		ch = 1;
+		}		
+	else {
+		RTC_IntClear(ints); // Just in case.
+		return;
+		}
+	
+	if ( callbackinfo[ch].tcb ) {
+		forth_thread_restart(callbackinfo[ch].tcb);
+		callbackinfo[ch].tcb = 0;
 		}
 	}
 
