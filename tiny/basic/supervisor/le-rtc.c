@@ -91,8 +91,10 @@ void RTC_IRQHandler(void) {
 		uint32_t *tcb = callbackinfo[0].tcb;
 		if (callbackinfo[0].after) callbackinfo[0].after = 0;
 		if (callbackinfo[0].every) {
-			uint32_t now  = RTC_CounterGet();
-			uint32_t then = now + callbackinfo[0].every;
+			// Eliminate some hazards by incrementing the Comparator 
+			// rather than re-calculating each time.
+			uint32_t this  = RTC_CompareGet(0); 
+			uint32_t then = this + callbackinfo[0].every;
 			RTC_CompareSet(0, then);
 			}		
 		if (tcb) forth_thread_restart(tcb);
