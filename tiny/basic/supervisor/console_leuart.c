@@ -123,33 +123,37 @@ void LEUART0_IRQHandler(void) {
 
 	// If we finished a transmission, check for more work.
 	if ( leuartif & LEUART_IEN_TXC ) {
-
+		
 		// Check for pended XON/XOFF characters.
 		if ( s->pended_fc_char ) { 
 			LEUART0->TXDATA = s->pended_fc_char;
 			s->pended_fc_char = 0;
 			return;
 			}
-						
-		int used = ringbuffer_used(s->rb_tx);
-		if ( used ) {
-			uint32_t thechar = ringbuffer_getchar(s->rb_tx);
-			LEUART0->TXDATA = thechar;
-			used--;
-			
-			// See if thats the last char, and if so, re-start.
-			if ( used == 0 && \
-			 	s->blocked_tx == true ) {
-				s->blocked_tx = false;
-				
-				if ( s->tcb ) forth_thread_restart(s);
-				}
-			}				
-		}
-			
-	}
 
+		// Walk things in order to prioritize.
+		for ( int i = 0; i < 2; i++) {
+			s = &connection_state[i];
+			int used = ringbuffer_used(s->rb_tx);
+			if ( used ) {
+				uint32_t thechar = ringbuffer_getchar(s->rb_tx);
+				LEUART0->TXDATA = thechar;
+				used--;
 
+				// See if thats the last char, and if so, re-start.
+				if ( used == 0 && \
+				 	s->blocked_tx == true ) {
+					s->blocked_tx = false;
+
+					if ( s->tcb ) forth_thread_restart(s);
+					}
+				return; // One char per customer!
+				} // if ( used )
+			} // for()
+		} //  leuartif & LEUART_IEN_TXC
+		
+	} // Handler
+			
 // ------------------------------------------------------------
 // The console puchar() call.  Intended for use with forth
 // Returns t/f based upon whether or not the write is a 
@@ -180,23 +184,28 @@ bool console_leuart_putchar(int stream, int c,  unsigned long *tcb) {
 	bool tx_hw_empty = (leuart_status & LEUART_STATUS_TXBL) != 0;
 	
 	// Check for an empty HW FIFO and bypass the ring buffer.
+	// This gets a bit complicated because we need to prioritize stream 0.
 	if ( tx_hw_empty ) {
-		// If the RB is empty, bypass it. 
-		if ( ringbuffer_used(connection_state[stream].rb_tx) == 0) { 
+		// If the RBufs are empty, bypass it.
+		if ( ringbuffer_used(connection_state[0].rb_tx) == 0 && \
+			 ringbuffer_used(connection_state[1].rb_tx) == 0 ) { 
 			LEUART0->TXDATA = c;
+			return(false); // No need to block.
+			} 	
+		// We didn't bypass.   There is data someplace.
+		for ( int i = 0; i < 2 ; i++ ) {
+			if ( ringbuffer_used(connection_state[i].rb_tx) ) {
+				int thechar = ringbuffer_getchar(connection_state[i].rb_tx);
+				LEUART0->TXDATA = thechar;
+				break;					
+				} 
 			}
-		// Otherwise there is something in there, and it needs
-		// to be sent first.
-		else { 
-			int thechar = ringbuffer_getchar(connection_state[stream].rb_tx);
-			LEUART0->TXDATA = thechar;
-			ringbuffer_addchar(connection_state[stream].rb_tx,c); // Don't check status.  No change.			
-			}
-		return(false);
-		}
-	
+		}	
+
+	// We've removed any existing data from existing FIFO.
+	// Now add it to the correct FIFOs and then decide what to do.
 	int free = ringbuffer_addchar(connection_state[stream].rb_tx,c);
-	
+
 	// If we're maxing out, tell the caller to yield.
 	if ( free == 0 ) { // Let it fill up.  No flow control chars in the ringbuffer.
 		connection_state[stream].tcb = tcb;
@@ -205,11 +214,13 @@ bool console_leuart_putchar(int stream, int c,  unsigned long *tcb) {
 		if ( tcb ) forth_thread_stop(&connection_state[stream]);
 		return(true);		
 		}
-	else return(false);
+	else return(false);	
 	}
 
 // ------------------------------------------------------------
 // The console charsavailable() call for use with key?
+// This will work fine for all streams, as there will only 
+// be characters available on stream 0.
 // ------------------------------------------------------------
 int console_leuart_charsavailable(int stream) {
 	return( ringbuffer_used(connection_state[stream].rb_rx));
@@ -220,6 +231,9 @@ int console_leuart_charsavailable(int stream) {
 // Supports blocking reads.
 // ------------------------------------------------------------
 int console_leuart_getchar(int stream, unsigned long *tcb) {
+	
+	if ( stream != 0 ) return(false); // No support for reading from stream 1
+	
 	int result = ringbuffer_getchar(connection_state[stream].rb_rx);
 	
 	if ( result == -1 ) {

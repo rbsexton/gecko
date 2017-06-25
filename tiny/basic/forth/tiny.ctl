@@ -117,6 +117,7 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
 
 #0 equ console-port	\ -- n ; Designate serial port for terminal (0..n).
  1 equ useUART0? 
+ 1 equ useUART1? 
 \ *G Ports 1..5 are the on-chip UARTs. The internal USB device
 \ ** is port 10, and bit-banged ports are defined from 20 onwards.
 
