@@ -30,6 +30,7 @@ c" ./Drivers" setmacro DriverDir \ Driver Code
 c" ../../../../cm3forthtools/"    setmacro LocalCM3	\ Cortex-M common forth 
 c" ../../../../sockpuppet/forth"    setmacro SAPIDir       \  Low-Level SAPI stuff.
 
+c" ../../../../forthlib-private/mpe/Cortex" setmacro CpuDirCustom
 
 \ ***************************************
 \ Load compiler extensions such as macros
@@ -169,7 +170,7 @@ cell equ cell				\ size of a cell (16 bits)
   PROGd  sec-top 1+ equ UNUSED-TOP  PROG	\ top of memory for UNUSED
   
   include %AppDir%/StartCortex		\ basic Cortex-M3 startup code
-  include %CpuDir%/CodeCortex		\ low level kernel definitions
+  include %CpuDirCustom%/CodeCortex		\ low level kernel definitions
   include %CommonDir%/kernel62          \ high level kernel definitions
   include %CommonDir%/Devtools		\ DUMP .S etc development tools
   \ include %CommonDir%/Voctools		\ ORDER VOCS etc
@@ -182,8 +183,9 @@ cell equ cell				\ size of a cell (16 bits)
   \ include %SPDir%/dylink     		\ Runtime Linking
 
   \ include %LocalCM3%/bitband
-  include %CpuDir%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
+  include %CpuDirCustom%/MultiCortex		\ multi-tasker, MUST be before TIMEBASE
   include %LocalCM3%/Pause          \ Customized Pause
+  include %LocalCM3%/CortexM3Atomic          \ Atomic ops.
   include %AppDir%/TinyGecko		\ Various Addresses
 
 timebase? [if]
