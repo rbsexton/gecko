@@ -52,8 +52,8 @@ cdata
 : LCD#! ( n -- ) jt LCD_# @ swap call1-- ;
 variable thecount
 
-: wakestart 1 $10 wakereq ; \ Request a wake 
-: wakestop  1   0 wakereq ; \ No more, please. 
+: wakestart 1 $10 wakereq drop ; \ Request a wake 
+: wakestop  1   0 wakereq drop ; \ No more, please. 
 
 : COUNT-WORD
   wakestart
@@ -78,10 +78,30 @@ variable thecount
   again
 ;
 
+: interp-next ( addr -- ) \ A fixed version.  Returns amount to step
+  dup @ \ err
+  #103 - dup 1 > if swap ! #13 exit then
+  \ Otherwise, we need to adjust
+  #125 + swap ! #14 
+;
+
+variable err 
+
+: COUNT-DT
+  begin 
+    0   err interp-next wakereq drop \ Don't keep the return code. 
+    pause
+    thecount dup  @ 1+ dup lcd#! swap ! 
+  again
+;
 
 ((
 task foo 
 ' count-word foo initiate
+
+
+
+
 ))
 
  
