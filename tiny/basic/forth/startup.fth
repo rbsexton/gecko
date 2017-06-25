@@ -30,6 +30,7 @@ end-struct
  
 udata
 create hms tod allot
+create dhms tod allot
 cdata
 
 : +CAP ( n max -- n ) >R 1 + dup r> = if drop 0 then ; 
@@ -46,12 +47,27 @@ cdata
   2drop  
 ;
 
+: DADVANCE ( tod -- )
+  dup s c@ #100 +cap  2dup swap s c! \ Advance the seconds.  base n -- 
+  if drop exit then
+  
+  dup m c@ #100 +cap  2dup swap m c! \ advance minutes
+  if drop exit then
+
+  dup h c@ #10 +cap  2dup swap h c! \ advance minutes
+
+  2drop  
+;
+
 \ ----------------------------------------------
 \ Tools for writing to the LCD
 \ ----------------------------------------------
 : LCD#! ( n -- ) jt LCD_# @ swap call1-- ;
+: LCD$! ( addr -- ) jt LCD_Wr @ swap call1-- ; 
+
 variable thecount
 
+(( Sample code for demonstrating messages ))
 : wakestart 1 $10 wakereq drop ; \ Request a wake 
 : wakestop  1   0 wakereq drop ; \ No more, please. 
 
@@ -78,6 +94,48 @@ variable thecount
   again
 ;
 
+\ --------------------------------------------------------------------
+\ Keeping time.
+\ --------------------------------------------------------------------
+task TOPTASK 
+
+: TOPLCDOUT hms dup h c@ #100 * swap m c@ +  lcd#! ; 
+
+: TOPWORD
+  0 $10 wakereq drop \ The first Second.  
+  begin
+   pause
+   toplcdout 
+   hms advance
+   2 $10 wakereq drop \ Relative step
+  again
+; 
+
+
+\ --------------------------------------------------------------------
+\ Decimal Time
+\ --------------------------------------------------------------------
+
+task BOTTASK
+
+: BOTWORD
+  1 err interp-next wakereq drop 
+  begin
+   pause
+   dhms dadvance
+   botlcd dms$ drop lcd$!
+   3 err interp-next wakereq drop 
+  again
+; 
+
+: BOTLCD dhms
+  dup h c@   #1000 *
+  over m c@   #100 * +
+  swap s c@ + ;
+
+\ Include the terminating null.
+: dms$ base @ >R decimal s>d <# 0 hold # # $20 hold  # # $20 hold # #> R> base !  ; 
+
 : interp-next ( addr -- ) \ A fixed version.  Returns amount to step
   dup @ \ err
   #103 - dup 1 > if swap ! #13 exit then
@@ -85,15 +143,24 @@ variable thecount
   #125 + swap ! #14 
 ;
 
+: CLOCKSTART
+  ['] topword toptask initiate
+  ['] botword bottask initiate 
+;
+
 variable err 
 
 : COUNT-DT
+  0 err interp-next wakereq drop \ Don't keep the return code.
   begin 
-    0   err interp-next wakereq drop \ Don't keep the return code. 
     pause
-    thecount dup  @ 1+ dup lcd#! swap ! 
+    thecount dup  @ 1 #9999 +cap dup lcd#! swap ! 
+    2   err interp-next wakereq drop \ Don't keep the return code. 
   again
 ;
+
+
+
 
 ((
 task foo 
