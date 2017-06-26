@@ -129,7 +129,7 @@ task BOTTASK
 ; 
 
 : BOTLCD dhms
-  dup h c@   #1000 *
+  dup h c@  #10000 *
   over m c@   #100 * +
   swap s c@ + ;
 
