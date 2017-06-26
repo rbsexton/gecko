@@ -159,15 +159,37 @@ variable err
   again
 ;
 
+\ ---------------------------------------------------------------
+\ Setting the time.
+\ ---------------------------------------------------------------
 
+: *HMS->S  ( addr -- n ) dup h c@ #3600 * over m c@ #60 * + swap s c@ + ; 
+: *DHMS->S ( addr -- n ) dup h c@ #10000 * over m c@ #100 * + swap s c@ + ; 
+
+\ Stash things in the struct.
+: ->*HMS ( h m s addr -- )  dup >R s c! R@ m c! R> h c! ; 
+
+: S->DS ( seconds -- seconds )
+  dup #108 / #125 * \ First pass 
+  swap #108 mod  #125 * #108 / +
+;
+
+: DS->DHMS ( n -- h m s ) 
+  dup #10000 / swap #10000 mod 
+  dup   #100 / swap   #100 mod 
+ ;
+
+: SETBOTH ( h m s -- ) 
+  hms ->*hms
+  hms *hms->s
+  s->ds ds->dhms
+  dhms ->*hms  
+;
 
 
 ((
 task foo 
 ' count-word foo initiate
-
-
-
 
 ))
 
