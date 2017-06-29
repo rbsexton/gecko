@@ -82,7 +82,11 @@ Stamp? 0= [if] +xrefs [then]	\ enable cross references
 
 \ *P The Flash memory starts at $0000:0000. 
 \ We own the whole thing, but we have to start at a 1k boundary.
-\ to leave room for the launcher
+\ to leave room for the launcher.   Its possible to include
+\ it from here.
+
+  \ $0000:0000 $0000:1FFF cdata section Sup	\ Supervisor goes here.
+  \ $2000 data-file supervisor.bin - allot 
 
   $0000:2000 $0000:7FFF cdata section Tiny	\ code section in boot Flash
   $2000:0400 $2000:06FF idata section PROGd	\  IDATA - New runtime words live here.
