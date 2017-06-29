@@ -175,8 +175,8 @@ variable err
 ;
 
 : DS->DHMS ( n -- h m s ) 
-  dup #10000 / swap #10000 mod 
-  dup   #100 / swap   #100 mod 
+  #10000 /mod swap 
+    #100 /mod swap  
  ;
 
 : SETBOTH ( h m s -- ) 
