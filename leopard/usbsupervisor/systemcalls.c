@@ -12,7 +12,7 @@
 
 #include "console_leuart.h"
 
-long* __SAPI_01_GetRuntimeData(int i) {
+void* __SAPI_01_GetRuntimeData(int i) {
 	if ( i == 0 ) return(0);
 	else return(0);
 }
@@ -27,7 +27,7 @@ bool __SAPI_02_PutChar(int stream, uint8_t c, unsigned long *tcb) {
 	int ret;
 	switch ( stream ) {
 		case 0: 
-			return(console_leuart_putchar(c, tcb));
+			return(console_leuart_putchar(0,c, tcb));
 		case 10:
 		case 11:
 			return(USBPutChar(stream-10, c));
@@ -42,7 +42,7 @@ bool __SAPI_02_PutChar(int stream, uint8_t c, unsigned long *tcb) {
 int __SAPI_03_GetChar(int stream, unsigned long *tcb) {
 	switch ( stream ) {
 		case 0:
-			return(console_leuart_getchar(tcb));
+			return(console_leuart_getchar(0,tcb));
 		case 10:
 		case 11:
 			return(USBGetChar(stream-10, tcb));			
@@ -56,7 +56,7 @@ int __SAPI_03_GetChar(int stream, unsigned long *tcb) {
 int __SAPI_04_GetCharAvail(int stream) {
 	switch ( stream ) {
 		case 0:
-			return(console_leuart_charsavailable());
+			return(console_leuart_charsavailable(0));
 		case 10:
 		case 11:
 			return(USBGetCharAvail(stream-10));
@@ -94,9 +94,8 @@ bool __SAPI_06_EOL(int stream, unsigned long *tcb) {
 	}
 
 // Stubbed out
-unsigned __SAPI_12_SetWakeRequest(int id, unsigned *addr, unsigned mask) {
-	if ( id == 0 ) return(*addr);
-	else return(mask);
+bool __SAPI_12_WakeRequest(int request_type, int arg, unsigned long *tcb) {
+	return(request_type == 0 || arg == 0 || tcb == 0 ); // A Pointless fn.
 	}
 
 // Stubbed out
@@ -104,6 +103,7 @@ unsigned __SAPI_13_CPUUsage() {
 	static unsigned count = 0;
 	return(++count);
 	}
+
 
 // Stubbed out
 void __SAPI_14_PetWatchdog(unsigned machineticks) {
@@ -113,7 +113,7 @@ void __SAPI_14_PetWatchdog(unsigned machineticks) {
 }
 
 extern uint32_t rtc_ms;
-unsigned __SAPI_15_GetTimeMS(int kind) {
+unsigned __SAPI_15_GetTime(tTimeType kind) {
 	if (kind == 0) return(rtc_ms);
 	else return( (unsigned) &rtc_ms );
 }
