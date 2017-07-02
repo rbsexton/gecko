@@ -128,6 +128,8 @@ $080 equ TIB-LEN		\ terminal i/p buffer length
 #10 equ tick-ms		\ -- ms
 \ *G Timebase tick in ms.
 
+\ 1 equ IOProfiling?
+
 \ ***************************************
 \ Load compiler extensions such as macros
 \ ***************************************
