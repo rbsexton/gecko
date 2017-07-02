@@ -80,10 +80,10 @@ Stamp? 0= [if] +xrefs [then]	\ enable cross references
 
 
 \ *P The Flash memory starts at $0000:0000. 
-\ This is a 256/32k part.  We get the top half of flash, plus
-\ 3/4 of the RAM.
+\ This is a 256/32k part. For now, give the supervisor
+\ 64k of flash and 8k of RAM.
 
-  $0002:0000 $0002:FFFF cdata section Leopard	\ code section in boot Flash
+  $0001:0000 $0003:FFFF cdata section Leopard	\ code section in boot Flash
   $2000:2000 $2000:3fff idata section PROGd	\  IDATA - Initialized memory.
   $2000:4000 $2000:7FFF udata section PROGu	\  UDATA
 
