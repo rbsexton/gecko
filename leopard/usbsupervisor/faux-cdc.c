@@ -141,8 +141,7 @@ static int UsbDataReceivedMeta(USB_Status_TypeDef status,
 static int UsbDataTransmittedMeta(USB_Status_TypeDef status,
 	uint32_t xferred, uint32_t remaining, int channel);
 
-static int (USB_Status_TypeDef status,
- 		uint32_t xferred, uint32_t remaining) {		
+static int UsbDataReceivedU0(USB_Status_TypeDef status, uint32_t xferred, uint32_t remaining) {		
 	return(UsbDataReceivedMeta(status, xferred, remaining, 0));
 	}
 
