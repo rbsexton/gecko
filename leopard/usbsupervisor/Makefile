@@ -22,6 +22,7 @@ LST_DIR = lst
 
 SDK=/Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
 CM3LIB=../../../cm3lib
+GECKOLIB=../../common
 SAPI=../../../sockpuppet/sapi
 
 ####################################################################
@@ -120,6 +121,7 @@ INCLUDEPATHS += \
 -I. \
 -I.. \
 -I$(CM3LIB) \
+-I$(GECKOLIB) \
 -I$(SDK)/CMSIS/Include \
 -I$(SDK)/Device/SiliconLabs/EFM32LG/Include \
 -I$(SDK)/emlib/inc \
@@ -162,7 +164,7 @@ $(SDK)/usb/src/em_usbtimer.c \
 ./main.c \
 ./descriptors.c \
 ./faux-cdc.c \
-./console_leuart.c \
+$(GECKOLIB)/console_leuart.c \
 $(SDK)/kits/common/drivers/dmactrl.c \
 $(SDK)/kits/common/drivers/segmentlcd.c \
 $(CM3LIB)/ringbuffer.c \

@@ -17,6 +17,7 @@ DEVICE = EFM32TG840F32
 PROJECTNAME = supervisor
 SDKROOT= /Applications/SimplicityStudio_v3/developer/sdks/efm32/v2
 CM3LIB= ../../../../cm3lib
+GECKOLIB= ../../../common
 SAPI=../../../../sockpuppet/sapi
 
 OBJ_DIR = build
@@ -117,6 +118,7 @@ LIBS = -Wl,--start-group -lgcc -lnosys -lc -Wl,--end-group
 INCLUDEPATHS += \
 -I. \
 -I$(CM3LIB)/ \
+-I$(GECKOLIB)/ \
 -I$(SAPI) \
 -I$(SDKROOT)/CMSIS/Include \
 -I$(SDKROOT)/Device/SiliconLabs/EFM32TG/Include \
@@ -143,7 +145,8 @@ $(SDKROOT)/emlib/src/em_rtc.c \
 $(SDKROOT)/kits/common/drivers/segmentlcd.c \
 $(SDKROOT)/kits/common/bsp/bsp_stk_leds.c \
 $(CM3LIB)/ringbuffer.c \
- ./supervisor.c ./interconnect.c ./systemcalls.c ./console_leuart.c le-rtc.c
+$(GECKOLIB)/console_leuart.c \
+ ./supervisor.c ./interconnect.c ./systemcalls.c le-rtc.c
 
 s_SRC += 
 

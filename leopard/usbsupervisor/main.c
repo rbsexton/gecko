@@ -96,7 +96,7 @@ void SayHello() {
 	// Send it a second time via the buffered IO system
 	p = message;
 	while(*p) {
-		console_leuart_putchar(*p, 0);
+		console_leuart_putchar(0,*p, 0);
 		p++;
 		}
 	}
