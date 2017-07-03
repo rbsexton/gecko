@@ -110,9 +110,17 @@ override ASMFLAGS += -x assembler-with-cpp -D$(DEVICE) -Wall -Wextra -mcpu=corte
 #
 # NOTE: The -Wl,--gc-sections flag may interfere with debugging using gdb.
 #
+
+LDSTITCHFLAGS = -Xlinker -Map=$(LST_DIR)/$(PROJECTNAME).map -mcpu=cortex-m3 \
+	        -mthumb -Tefm32lg-package.ld \
+		 -Wl,--gc-sections 
+
 override LDFLAGS += -Xlinker -Map=$(LST_DIR)/$(PROJECTNAME).map -mcpu=cortex-m3 \
  -mthumb -Tefm32lg.ld \
  -Wl,--gc-sections 
+
+
+
 
 LIBS = -Wl,--start-group -lgcc -lc -lnosys   -Wl,--end-group
 
@@ -221,10 +229,18 @@ $(OBJ_DIR)/%.o: %.S
 	@echo "Assembling $<"
 	$(CC) $(ASMFLAGS) $(INCLUDEPATHS) -c -o $@ $<
 
+
+forth.o: ../usbforth/LEOPARD.img
+	arm-none-eabi-objcopy -O elf32-littlearm \
+		-B arm --rename-section\
+		.data=.forth -I binary ../usbforth/LEOPARD.img\
+		forth.o
+
 # Link
 $(EXE_DIR)/$(PROJECTNAME).out: $(OBJS)
 	@echo "Linking target: $@"
 	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $(EXE_DIR)/$(PROJECTNAME).out
+	$(CC) $(LDSTITCHFLAGS) $(OBJS) forth.o $(LIBS) -o $(EXE_DIR)/$(PROJECTNAME)-package.out
 
 # Create binary file
 $(EXE_DIR)/$(PROJECTNAME).bin: $(EXE_DIR)/$(PROJECTNAME).out
