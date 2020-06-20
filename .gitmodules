@@ -1,3 +1,3 @@
 [submodule "tiny/bringup/launcher/cm3lib"]
-	path = tiny/bringup/launcher/cm3lib
+	path = devices/tiny/bringup/launcher/cm3lib
 	url = https://github.com/rbsexton/cm3lib.git

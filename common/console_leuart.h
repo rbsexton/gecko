@@ -1,5 +1,5 @@
 void initLeuart(void);
-void console_leuart_init(); 
+void console_leuart_init();
 
 // Interfaces for use by system calls.
 bool console_leuart_putchar(int stream, int c, unsigned long *tcb);
